@@ -13,6 +13,8 @@ data Player = Player {
   playerNextDirection :: NextDirection,
   playerNumLives :: NumLives}
 
+data Level = Int
+
 instance Show Player where
   show (Player _ _ _ _) = "vet cool"
 
@@ -33,8 +35,6 @@ data GameState = GameState {
 data PlayState = Begin | Playing | Paused | GameOver
 data Direction = North | South | West | East
 type NextDirection = Direction
-
-
 
 data Ghost = Ghost {
   ghostLocation :: Location,
