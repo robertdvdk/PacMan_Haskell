@@ -7,15 +7,15 @@ import Model
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
-import Model (Player)
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate
-  | elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES
-    do return $ updatePlayer --  Make a bigger update function that updates the player (if pac man can change direction, change direction)
+  | elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES = 
+    -- do return $ updateGameState (gstate {infoToShow = ShowAPlayer (player gstate)}) --  Make a bigger update function that updates the player (if pac man can change direction, change direction)
+    do return $ updateGameState (gstate {infoToShow = ShowGame (level gstate) (player gstate)}) --  Make a bigger update function that updates the player (if pac man can change direction, change direction)
                               -- and doe movePlayer or later or make it part of updatePlayer    
-    movePlayer (GameState (ShowAPlayer (player gstate)) 0 Playing (player gstate))
+    -- movePlayer (GameState (ShowAPlayer (player gstate)) 0 Playing (player gstate))
   | otherwise
   = -- Just update the elapsed time
     return $ gstate { elapsedTime = elapsedTime gstate + secs }
@@ -37,14 +37,26 @@ playerChangeNextDirection :: Direction -> Player -> Player  -- When wasd is pres
 playerChangeNextDirection dir player = player { playerNextDirection = dir }
 
 ableToChangeDirection :: Level -> Player -> Bool  -- Checks if pac-man can make a turn (now set to true because there is no check yet)
-ableToChangeDirection level player = True
+ableToChangeDirection level player = not (wallInDirection level (playerNextDirection player) player)
 
 playerChangeDirection :: Level -> Player -> Player -- Needs to be checked the whole time, how?
 playerChangeDirection level player  | ableToChangeDirection level player = player { playerDirection = playerNextDirection player}  
-                                    | Otherwise = Nothing       -- If pac-man can make a move fill nextdirection in direction
+                                    | otherwise = player       -- If pac-man can make a move fill nextdirection in direction
 
 movePlayer :: GameState -> GameState  
-movePlayer gstate = gstate { elapsedTime = 0, player = move (player gstate) }
+movePlayer gstate | not (wallInDirection (level gstate) (playerDirection (player gstate)) (player gstate)) = gstate {player = move (player gstate)}
+                  | otherwise = gstate
+
+wallInDirection :: Level -> Direction -> Player -> Bool -- Check if there is a wall in the given direction: generates a list of 10 points from the player towards the given direction
+                                                        -- and checks if any of those points are in the 'level' list that contains the walls
+wallInDirection level dir player = case dir of
+  West -> any (==True) [(x, snd (playerLocation player)) `elem` level | x <- [fst (playerLocation player) -10 .. fst(playerLocation player)]]
+  East -> any (==True) [(x, snd (playerLocation player)) `elem` level | x <- [fst (playerLocation player) .. fst(playerLocation player) + 10]]
+  North -> any (==True) [(fst (playerLocation player), y) `elem` level | y <- [snd (playerLocation player) .. snd(playerLocation player) + 10]]
+  South -> any (==True) [(fst (playerLocation player), y) `elem` level | y <- [snd (playerLocation player) -10 .. snd(playerLocation player)]]
+
+updateGameState :: GameState -> GameState -- Update player's direction, location, and ghosts' location
+updateGameState gstate = movePlayer (gstate {player = playerChangeDirection (level gstate) (player gstate)})
 
 move :: Player -> Player          -- Change location based on the direction 
 move player = case playerDirection player of 

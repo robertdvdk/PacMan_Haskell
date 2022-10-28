@@ -6,14 +6,13 @@ data InfoToShow = ShowNothing
                 | ShowANumber Int
                 | ShowAChar   Char
                 | ShowAPlayer Player
+                | ShowGame Level Player
 
 data Player = Player {
   playerLocation :: Location,
   playerDirection :: Direction,
   playerNextDirection :: NextDirection,
   playerNumLives :: NumLives}
-
-data Level = Int
 
 instance Show Player where
   show (Player _ _ _ _) = "vet cool"
@@ -30,7 +29,10 @@ data GameState = GameState {
   infoToShow :: InfoToShow,
   elapsedTime :: Float,
   playState :: PlayState,
-  player :: Player} 
+  player :: Player,
+  level :: Level}
+
+type Level = [Location]
 
 data PlayState = Begin | Playing | Paused | GameOver
 data Direction = North | South | West | East
@@ -50,4 +52,7 @@ data Color = Red | Pink | Yellow | Blue
 
 
 initialState :: GameState
-initialState = GameState ShowNothing 0 Begin (Player (50, 50) East West 3)
+-- initialState = GameState ShowNothing 0 Begin (Player (50, 50) East West 3) []
+-- level1 = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5)]
+level1 = [(x, -100) | x <- [-200..200]]
+initialState = GameState ShowNothing 0 Begin (Player (50, 50) East West 3) level1
