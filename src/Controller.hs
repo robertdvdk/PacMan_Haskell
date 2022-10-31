@@ -8,13 +8,11 @@ import System.Random
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate
-  | elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES = 
-    return $ updateGameState (gstate {infoToShow = ShowGame (level gstate) (player gstate)})   
-  | otherwise = case playState gstate of
-      Begin   -> return $ gstate
-      Playing -> return $ gstate { elapsedTime = elapsedTime gstate + secs }
-      Paused  -> return $ gstate
+step secs gstate = case playState gstate of
+      Playing -> if elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES 
+        then return $ updateGameState (gstate {infoToShow = ShowGame (level gstate) (player gstate)})
+        else return $ gstate { elapsedTime = elapsedTime gstate + secs }
+      _       -> return $ gstate { elapsedTime = elapsedTime gstate + secs }
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
@@ -30,8 +28,7 @@ inputKey (EventKey (Char c) _ _ _) gstate
     | c == 's'    = gstate { player = playerChangeNextDirection South (player gstate)}
     | c == 'a'    = gstate { player = playerChangeNextDirection West (player gstate)}
     | c == 'd'    = gstate { player = playerChangeNextDirection East (player gstate)}
-    | c == ' '    = changePlayState gstate
-    | otherwise   = gstate { infoToShow = ShowAChar c }
+    | c == 'p'    = changePlayState gstate
       where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 
 
@@ -66,11 +63,9 @@ move player = case playerDirection player of
   South -> player { playerLocation = (x, y - 5) }
   where (x, y) = playerLocation player
 
-changePlayState :: GameState -> GameState
+changePlayState :: GameState -> GameState           -- Changes the state from begin to playing but immediately back to paused
 changePlayState gstate = case playState gstate of 
         Begin     -> gstate { playState = Playing }
         Playing   -> gstate { playState = Paused }
         Paused    -> gstate { playState = Playing }
         GameOver  -> gstate { playState = Begin }
-
-
