@@ -50,10 +50,11 @@ movePlayer gstate | not (wallInDirection (level gstate) (playerDirection (player
 wallInDirection :: Level -> Direction -> Player -> Bool -- Check if there is a wall in the given direction: generates a list of 10 points from the player towards the given direction
                                                         -- and checks if any of those points are in the 'level' list that contains the walls
 wallInDirection level dir player = case dir of
-  West -> any (==True) [(x, snd (playerLocation player)) `elem` level | x <- [fst (playerLocation player) -10 .. fst(playerLocation player)]]
-  East -> any (==True) [(x, snd (playerLocation player)) `elem` level | x <- [fst (playerLocation player) .. fst(playerLocation player) + 10]]
-  North -> any (==True) [(fst (playerLocation player), y) `elem` level | y <- [snd (playerLocation player) .. snd(playerLocation player) + 10]]
-  South -> any (==True) [(fst (playerLocation player), y) `elem` level | y <- [snd (playerLocation player) -10 .. snd(playerLocation player)]]
+  West -> any (==True) [(x, v) `elem` level | x <- [u -10 .. u]]
+  East -> any (==True) [(x, v) `elem` level | x <- [u .. u + 10]]
+  North -> any (==True) [(u, y) `elem` level | y <- [v .. v + 10]]
+  South -> any (==True) [(u, y) `elem` level | y <- [v -10 .. v]]
+  where (u, v) = playerLocation player
 
 updateGameState :: GameState -> GameState -- Update player's direction, location, and ghosts' location
 updateGameState gstate = movePlayer (gstate {player = playerChangeDirection (level gstate) (player gstate)})
