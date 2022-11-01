@@ -1,40 +1,36 @@
 -- | This module defines how the state changes
 --   in response to time and user input
 module Controller where
-
 import Model
-
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate
-  | elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES = 
-    -- do return $ updateGameState (gstate {infoToShow = ShowAPlayer (player gstate)}) --  Make a bigger update function that updates the player (if pac man can change direction, change direction)
-    do return $ updateGameState (gstate {infoToShow = ShowGame (level gstate) (player gstate)}) --  Make a bigger update function that updates the player (if pac man can change direction, change direction)
-                              -- and doe movePlayer or later or make it part of updatePlayer    
-    -- movePlayer (GameState (ShowAPlayer (player gstate)) 0 Playing (player gstate))
-  | otherwise
-  = -- Just update the elapsed time
-    return $ gstate { elapsedTime = elapsedTime gstate + secs }
+step secs gstate = case playState gstate of
+      Playing -> return $ updateGameState gstate
+      _       -> return $ gstate 
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
 
+-- Pure Part starts here
 inputKey :: Event -> GameState -> GameState
 inputKey (EventKey (Char c) _ _ _) gstate
     | c == 'w'    = gstate { player = playerChangeNextDirection North (player gstate)}
     | c == 's'    = gstate { player = playerChangeNextDirection South (player gstate)}
     | c == 'a'    = gstate { player = playerChangeNextDirection West (player gstate)}
     | c == 'd'    = gstate { player = playerChangeNextDirection East (player gstate)}
-    | otherwise   = gstate { infoToShow = ShowAChar c }
+    | c == 'p'    = gstate { playState = changePlayState gstate }
+      where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 
 
-playerChangeNextDirection :: Direction -> Player -> Player  -- When wasd is pressed, first the playerNextDirection changes
-playerChangeNextDirection dir player = player { playerNextDirection = dir }
+updateGameState :: GameState -> GameState -- Update player's direction, location, and ghosts' location
+updateGameState gstate = movePlayer (gstate 
+  {infoToShow = ShowGame (level gstate) (player gstate)}
+  {player = playerChangeDirection (level gstate) (player gstate)})
 
 ableToChangeDirection :: Level -> Player -> Bool  -- Checks if pac-man can make a turn (now set to true because there is no check yet)
 ableToChangeDirection level player = not (wallInDirection level (playerNextDirection player) player)
@@ -61,9 +57,6 @@ wallInDirection level dir player = case dir of
   -- South -> any (==True) [(x, y) `elem` level | x <- [u - 10, u, u + 10], y <- [v -15 .. v]]
   -- where (u, v) = playerLocation player
 
-updateGameState :: GameState -> GameState -- Update player's direction, location, and ghosts' location
-updateGameState gstate = movePlayer (gstate {player = playerChangeDirection (level gstate) (player gstate)})
-
 move :: Player -> Player          -- Change location based on the direction 
 move player = case playerDirection player of 
   West -> player { playerLocation = (x - 1, y) }
@@ -72,10 +65,9 @@ move player = case playerDirection player of
   South -> player { playerLocation = (x, y - 1) }
   where (x, y) = playerLocation player
 
-pauseGame :: GameState -> IO GameState
-pauseGame gstate = do c <- getChar
-                      case c of
-                            ' ' -> case playState gstate of
-                              Playing -> return $ gstate {playState = Paused}
-                              Paused  -> return $ gstate {playState = Playing}
-
+changePlayState :: GameState -> PlayState           -- Changes the state from begin to playing but immediately back to paused
+changePlayState gstate = case playState gstate of 
+  Begin     -> Playing
+  Playing   -> Paused
+  Paused    -> Playing
+  GameOver  -> Begin
