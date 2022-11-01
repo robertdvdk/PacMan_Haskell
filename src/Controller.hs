@@ -16,7 +16,7 @@ step secs gstate = case playState gstate of
 input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
 
--- Pure Part starts here
+-- | PURE PART STARTS HERE
 inputKey :: Event -> GameState -> GameState
 inputKey (EventKey (Char c) _ _ _) gstate
     | c == 'w'    = gstate { player = playerChangeNextDirection North (player gstate)}
@@ -24,48 +24,47 @@ inputKey (EventKey (Char c) _ _ _) gstate
     | c == 'a'    = gstate { player = playerChangeNextDirection West (player gstate)}
     | c == 'd'    = gstate { player = playerChangeNextDirection East (player gstate)}
     | c == 'p'    = gstate { playState = changePlayState gstate }
-      where playerChangeNextDirection dir player = player { playerNextDirection = dir }
+    where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 
 
-updateGameState :: GameState -> GameState -- Update player's direction, location, and ghosts' location
+-- | Update player's direction, location, and ghosts' location
+updateGameState :: GameState -> GameState
 updateGameState gstate = movePlayer (gstate 
-  {infoToShow = ShowGame (level gstate) (player gstate)}
   {player = playerChangeDirection (level gstate) (player gstate)})
 
-ableToChangeDirection :: Level -> Player -> Bool  -- Checks if pac-man can make a turn (now set to true because there is no check yet)
+ -- | Checks if Pac-Man can make a turn
+ableToChangeDirection :: Level -> Player -> Bool 
 ableToChangeDirection level player = not (wallInDirection level (playerNextDirection player) player)
 
-playerChangeDirection :: Level -> Player -> Player -- Needs to be checked the whole time, how?
+playerChangeDirection :: Level -> Player -> Player
 playerChangeDirection level player  | ableToChangeDirection level player = player { playerDirection = playerNextDirection player}  
-                                    | otherwise = player       -- If pac-man can make a move fill nextdirection in direction
+                                    | otherwise = player
 
 movePlayer :: GameState -> GameState  
 movePlayer gstate | not (wallInDirection (level gstate) (playerDirection (player gstate)) (player gstate)) = gstate {player = move (player gstate)}
                   | otherwise = gstate
 
-wallInDirection :: Level -> Direction -> Player -> Bool -- Check if there is a wall in the given direction: generates a list of 10 points from the player towards the given direction
-                                                        -- and checks if any of those points are in the 'level' list that contains the walls
+-- | Check if there is a wall in the given direction: generates a list of 10 points from the player towards the given direction
+-- | and checks if any of those points are in the 'level' list that contains the walls
+wallInDirection :: Level -> Direction -> Player -> Bool
 wallInDirection level dir player = case dir of
-  West -> (x - 1, y) `elem` level
-  East -> (x + 1, y) `elem` level
+  West  -> (x - 1, y) `elem` level
+  East  -> (x + 1, y) `elem` level
   North -> (x, y + 1) `elem` level
   South -> (x, y - 1) `elem` level
   where (x, y) = playerLocation player
-  -- West -> any (==True) [(x, y) `elem` level | x <- [u -15 .. u], y <- [v - 10, v, v + 10]]
-  -- East -> any (==True) [(x, y) `elem` level | x <- [u .. u + 15], y <- [v - 10, v, v + 10]]
-  -- North -> any (==True) [(x, y) `elem` level | x <- [u - 10, u, u + 10], y <- [v .. v + 15]]
-  -- South -> any (==True) [(x, y) `elem` level | x <- [u - 10, u, u + 10], y <- [v -15 .. v]]
-  -- where (u, v) = playerLocation player
 
-move :: Player -> Player          -- Change location based on the direction 
+-- | Change location based on the direction 
+move :: Player -> Player
 move player = case playerDirection player of 
-  West -> player { playerLocation = (x - 1, y) }
-  East -> player { playerLocation = (x + 1, y) }
+  West  -> player { playerLocation = (x - 1, y) }
+  East  -> player { playerLocation = (x + 1, y) }
   North -> player { playerLocation = (x, y + 1) }
   South -> player { playerLocation = (x, y - 1) }
   where (x, y) = playerLocation player
 
-changePlayState :: GameState -> PlayState           -- Changes the state from begin to playing but immediately back to paused
+-- | Changes the state from begin to playing but immediately back to paused
+changePlayState :: GameState -> PlayState 
 changePlayState gstate = case playState gstate of 
   Begin     -> Playing
   Playing   -> Paused

@@ -5,15 +5,20 @@ module View where
 import Graphics.Gloss
 import Model
 
+-- View all components
 view :: GameState -> IO Picture
 view = return . viewPure
 
-viewPure :: GameState -> Picture
-viewPure gstate = case infoToShow gstate of
-  ShowNothing   -> blank
-  ShowGame l p -> drawLevel l p
-  -- ShowGame l p -> drawLevel l
+viewPure :: GameState -> Picture 
+viewPure gstate = pictures (viewScore (score gstate) : (viewPlayer (player gstate) : (viewLevel (level gstate))))
 
-drawLevel :: [Point] -> Player -> Picture
--- drawLevel level player = pictures (translate p1*20 p2*20 (color yellow (Circle 20)) : [translate (fst point * 20) (snd point * 20) (color blue (rectangleSolid 20 20)) | point <- level]) where (p1, p2) = playerLocation player
-drawLevel level player = pictures (translate (p1 * 10) (p2 * 10) (color yellow (Circle 5)) : ([translate (fst point * 10) (snd point * 10) (color blue (rectangleSolid 10 10)) | point <- level])) where (p1, p2) = playerLocation player
+-- View individual components
+viewScore :: Score -> Picture
+viewScore score = translate (150) (150) (color green (text (show score)))
+
+viewPlayer :: Player -> Picture
+viewPlayer player = translate (x * 10) (y * 10) (color yellow (circleSolid 5))
+  where (x, y) = playerLocation player
+
+viewLevel :: Level -> [Picture]
+viewLevel level = [translate (x * 10) (y * 10) (color blue (rectangleSolid 10 10)) | (x, y) <- level]
