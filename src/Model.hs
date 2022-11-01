@@ -60,3 +60,5 @@ initialState = GameState (ShowGame level1 initialPlayer) 0 Playing initialPlayer
 -- initialState = GameState ShowNothing 0 Begin (Player (50, 50) East West 3) []
 -- level1 = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5)]
 
+
+

@@ -46,18 +46,23 @@ movePlayer gstate | not (wallInDirection (level gstate) (playerDirection (player
 wallInDirection :: Level -> Direction -> Player -> Bool -- Check if there is a wall in the given direction: generates a list of 10 points from the player towards the given direction
                                                         -- and checks if any of those points are in the 'level' list that contains the walls
 wallInDirection level dir player = case dir of
-  West  -> any (==True) [(x, v) `elem` level | x <- [u - 10 .. u]]
-  East  -> any (==True) [(x, v) `elem` level | x <- [u .. u + 10]]
-  North -> any (==True) [(u, y) `elem` level | y <- [v .. v + 10]]
-  South -> any (==True) [(u, y) `elem` level | y <- [v - 10 .. v]]
-  where (u, v) = playerLocation player
+  West -> (x - 1, y) `elem` level
+  East -> (x + 1, y) `elem` level
+  North -> (x, y + 1) `elem` level
+  South -> (x, y - 1) `elem` level
+  where (x, y) = playerLocation player
+  -- West -> any (==True) [(x, y) `elem` level | x <- [u -15 .. u], y <- [v - 10, v, v + 10]]
+  -- East -> any (==True) [(x, y) `elem` level | x <- [u .. u + 15], y <- [v - 10, v, v + 10]]
+  -- North -> any (==True) [(x, y) `elem` level | x <- [u - 10, u, u + 10], y <- [v .. v + 15]]
+  -- South -> any (==True) [(x, y) `elem` level | x <- [u - 10, u, u + 10], y <- [v -15 .. v]]
+  -- where (u, v) = playerLocation player
 
 move :: Player -> Player          -- Change location based on the direction 
 move player = case playerDirection player of 
-  West -> player { playerLocation = (x - 5, y) }
-  East -> player { playerLocation = (x + 5, y) }
-  North -> player { playerLocation = (x, y + 5) }
-  South -> player { playerLocation = (x, y - 5) }
+  West -> player { playerLocation = (x - 1, y) }
+  East -> player { playerLocation = (x + 1, y) }
+  North -> player { playerLocation = (x, y + 1) }
+  South -> player { playerLocation = (x, y - 1) }
   where (x, y) = playerLocation player
 
 changePlayState :: GameState -> PlayState           -- Changes the state from begin to playing but immediately back to paused
