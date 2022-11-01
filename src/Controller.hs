@@ -9,28 +9,28 @@ import System.Random
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
-      Playing -> if elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES 
-        then return $ updateGameState (gstate {infoToShow = ShowGame (level gstate) (player gstate)})
-        else return $ gstate { elapsedTime = elapsedTime gstate + secs }
-      _       -> return $ gstate { elapsedTime = elapsedTime gstate + secs }
+      Playing -> return $ updateGameState gstate
+      _       -> return $ gstate 
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
 
-
 -- Pure Part starts here
-
-
 inputKey :: Event -> GameState -> GameState
 inputKey (EventKey (Char c) _ _ _) gstate
     | c == 'w'    = gstate { player = playerChangeNextDirection North (player gstate)}
     | c == 's'    = gstate { player = playerChangeNextDirection South (player gstate)}
     | c == 'a'    = gstate { player = playerChangeNextDirection West (player gstate)}
     | c == 'd'    = gstate { player = playerChangeNextDirection East (player gstate)}
-    | c == 'p'    = changePlayState gstate
+    | c == 'p'    = gstate { playState = changePlayState gstate }
       where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 
+
+updateGameState :: GameState -> GameState -- Update player's direction, location, and ghosts' location
+updateGameState gstate = movePlayer (gstate 
+  {infoToShow = ShowGame (level gstate) (player gstate)}
+  {player = playerChangeDirection (level gstate) (player gstate)})
 
 ableToChangeDirection :: Level -> Player -> Bool  -- Checks if pac-man can make a turn (now set to true because there is no check yet)
 ableToChangeDirection level player = not (wallInDirection level (playerNextDirection player) player)
@@ -52,9 +52,6 @@ wallInDirection level dir player = case dir of
   South -> any (==True) [(u, y) `elem` level | y <- [v - 10 .. v]]
   where (u, v) = playerLocation player
 
-updateGameState :: GameState -> GameState -- Update player's direction, location, and ghosts' location
-updateGameState gstate = movePlayer (gstate {player = playerChangeDirection (level gstate) (player gstate)})
-
 move :: Player -> Player          -- Change location based on the direction 
 move player = case playerDirection player of 
   West -> player { playerLocation = (x - 5, y) }
@@ -63,9 +60,9 @@ move player = case playerDirection player of
   South -> player { playerLocation = (x, y - 5) }
   where (x, y) = playerLocation player
 
-changePlayState :: GameState -> GameState           -- Changes the state from begin to playing but immediately back to paused
+changePlayState :: GameState -> PlayState           -- Changes the state from begin to playing but immediately back to paused
 changePlayState gstate = case playState gstate of 
-        Begin     -> gstate { playState = Playing }
-        Playing   -> gstate { playState = Paused }
-        Paused    -> gstate { playState = Playing }
-        GameOver  -> gstate { playState = Begin }
+  Begin     -> Playing
+  Playing   -> Paused
+  Paused    -> Playing
+  GameOver  -> Begin

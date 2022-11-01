@@ -3,8 +3,6 @@
 module Model where
 
 data InfoToShow = ShowNothing
-                | ShowANumber Int
-                | ShowAChar   Char
                 | ShowAPlayer Player
                 | ShowGame Level Player
 
@@ -58,7 +56,7 @@ initialPlayer :: Player
 initialPlayer = Player (0, -20) West West 3
 
 initialState :: GameState
-initialState = GameState (ShowGame level1 initialPlayer) 0 Begin initialPlayer level1
+initialState = GameState (ShowGame level1 initialPlayer) 0 Playing initialPlayer level1
 -- initialState = GameState ShowNothing 0 Begin (Player (50, 50) East West 3) []
 -- level1 = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5)]
 
