@@ -18,13 +18,14 @@ input e gstate = return (inputKey e gstate)
 
 -- | PURE PART STARTS HERE
 inputKey :: Event -> GameState -> GameState
-inputKey (EventKey (Char c) _ _ _) gstate
-    | c == 'w'    = gstate { player = playerChangeNextDirection North (player gstate)}
-    | c == 's'    = gstate { player = playerChangeNextDirection South (player gstate)}
-    | c == 'a'    = gstate { player = playerChangeNextDirection West (player gstate)}
-    | c == 'd'    = gstate { player = playerChangeNextDirection East (player gstate)}
+inputKey (EventKey (Char c) Down _ _) gstate
+    | c == 'w'    = changeDirection North
+    | c == 's'    = changeDirection South
+    | c == 'a'    = changeDirection West
+    | c == 'd'    = changeDirection East
     | c == 'p'    = gstate { playState = changePlayState gstate }
-    where playerChangeNextDirection dir player = player { playerNextDirection = dir }
+    where changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate)}
+            where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 
 
 -- | Update player's direction, location, and ghosts' location
@@ -41,8 +42,9 @@ playerChangeDirection level player  | ableToChangeDirection level player = playe
                                     | otherwise = player
 
 movePlayer :: GameState -> GameState  
-movePlayer gstate | not (wallInDirection (level gstate) (playerDirection (player gstate)) (player gstate)) = gstate {player = move (player gstate)}
+movePlayer gstate | noWall = gstate { player = move (player gstate)}
                   | otherwise = gstate
+  where noWall = not (wallInDirection (level gstate) (playerDirection (player gstate)) (player gstate))
 
 -- | Check if there is a wall in the given direction: generates a list of 10 points from the player towards the given direction
 -- | and checks if any of those points are in the 'level' list that contains the walls
