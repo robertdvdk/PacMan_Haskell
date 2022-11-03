@@ -57,7 +57,7 @@ level1 = concatMap makeLevelRectangle
   ((0, -150),     (150, -150))]
 
 initialPlayer :: Player
-initialPlayer = Player (0, -20) West West
+initialPlayer = Player (0, 10) West West
 
 initialState :: GameState
 initialState = GameState Begin initialPlayer level1 1000
