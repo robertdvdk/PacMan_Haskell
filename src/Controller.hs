@@ -11,8 +11,12 @@ import ReadWrite
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
+      Begin     -> do 
+                      highScores <- readF
+                      return $ initialState { highScores = highScores }
       Playing   -> return $ updateGameState gstate
-      Paused  -> do   write (score gstate)
+      GameOver  -> do   
+                      writeF gstate
                       return $ gstate
       _         -> return $ gstate 
 
@@ -28,6 +32,7 @@ inputKey (EventKey (Char c) Down _ _) gstate
     | c == 'a'    = changeDirection West
     | c == 'd'    = changeDirection East
     | c == 'p'    = gstate { playState = changePlayState gstate }
+    | c == 'g'    = gstate { playState = GameOver } -- TEST GAMEOVER
     where changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate)}
             where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 

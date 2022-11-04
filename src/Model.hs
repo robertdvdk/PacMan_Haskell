@@ -4,10 +4,11 @@ module Model where
 
 -- The Gamestate Model
 data GameState = GameState {
-  playState :: PlayState,
-  player    :: Player,
-  level     :: Level,
-  score     :: Score}
+  playState   :: PlayState,
+  player      :: Player,
+  level       :: Level,
+  score       :: Score,
+  highScores  :: [Int] }
 
 data PlayState  = Begin | Playing | Paused | GameOver
 type Level      = [Location]
@@ -17,7 +18,7 @@ type Score      = Int
 data Player = Player {
   playerLocation      :: Location,
   playerDirection     :: Direction,
-  playerNextDirection :: NextDirection}
+  playerNextDirection :: NextDirection }
 
 type Location       = (Float, Float)
 data Direction      = North | South | West | East
@@ -29,7 +30,7 @@ data Ghost = Ghost {
   ghostDirection      :: Direction,
   ghostNextDirection  :: NextDirection,
   ghostColor          :: Color,
-  ghostEatable        :: Eatable}
+  ghostEatable        :: Eatable }
 
 data Color    = Red | Pink | Yellow | Blue
 data Eatable  = IsEatable | NotEatable
@@ -60,4 +61,4 @@ initialPlayer :: Player
 initialPlayer = Player (0, 10) West West
 
 initialState :: GameState
-initialState = GameState Begin initialPlayer level1 1000
+initialState = GameState Begin initialPlayer level1 1000 [0, 0, 0, 0, 0]
