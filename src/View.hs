@@ -11,19 +11,28 @@ view :: GameState -> IO Picture
 view = return . viewPure
 
 viewPure :: GameState -> Picture 
-viewPure gstate = pictures ((viewLevel (level gstate)) ++ 
-  [ viewPlayer (player gstate), 
+viewPure gstate = pictures ((viewMaze (maze (level gstate))) ++ ((viewCage (ghostCage (level gstate)) (frames gstate)) ++
+  [ viewPlayer (player gstate),
+    viewGhost (ghost1 gstate), 
     viewScore (score gstate), 
     viewState (playState gstate)] ++ 
-    viewHighScores (highScores gstate))
+    viewHighScores (highScores gstate)))
 
 -- View individual components
-viewLevel :: Level -> [Picture]
-viewLevel level = [translate (x * 10) (y * 10) (color blue (rectangleSolid 10 10)) | (x, y) <- level]
+viewMaze :: Maze -> [Picture]
+viewMaze maze = [translate (x * 10) (y * 10) (color blue (rectangleSolid 10 10)) | (x, y) <- maze]
+
+viewCage :: Cage -> Int -> [Picture]
+viewCage cage f | f < 5 = [translate (x * 10) (y * 10) (color blue (rectangleSolid 10 10)) | (x, y) <- cage]
+                | otherwise = [translate (x * 10) (y * 10) (color yellow (rectangleSolid 10 10)) | (x, y) <- cage]
 
 viewPlayer :: Player -> Picture
 viewPlayer player = translate (x * 10) (y * 10) (color yellow (circleSolid 5))
   where (x, y) = playerLocation player
+
+viewGhost :: Ghost -> Picture
+viewGhost ghost = translate (x * 10) (y * 10) (color red (circleSolid 5))
+  where (x, y) = ghostLocation ghost
 
 viewScore :: Score -> Picture
 viewScore score = translate (-200) (-190) (color white (scale 0.1 0.1 (text ("Score:" ++ (show score)))))
