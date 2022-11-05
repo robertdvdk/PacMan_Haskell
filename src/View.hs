@@ -4,6 +4,7 @@ module View where
 
 import Graphics.Gloss
 import Model
+import Data.List
 
 -- View all components
 view :: GameState -> IO Picture
@@ -36,7 +37,10 @@ viewState playState = translate (-200) 180 (color white (scale 0.1 0.1 (text pla
           _         -> ""
 
 viewHighScores :: [Int] -> [Picture]
-viewHighScores [s,t,u,v,w] = [translate 80 180 (color white (scale 0.1 0.1 (text "Highscores: ")))] ++
-  [laatzien 180 (show s), laatzien 160 (show t), 
-  laatzien 140 (show u), laatzien 120 (show v), laatzien 100 (show w)]
-  where laatzien y z = translate 160 y (color white (scale 0.1 0.1 (text z)))
+viewHighScores highScores = viewHighScoresSorted (sort highScores)
+
+viewHighScoresSorted :: [Int] -> [Picture]
+viewHighScoresSorted [s,t,u,v,w] = [translate 80 180 (color white (scale 0.1 0.1 (text "Highscores: ")))] ++
+  [showScore 180 (show w), showScore 160 (show v), 
+  showScore 140 (show u), showScore 120 (show t), showScore 100 (show s)]
+  where showScore y z = translate 160 y (color white (scale 0.1 0.1 (text z)))
