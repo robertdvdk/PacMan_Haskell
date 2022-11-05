@@ -58,8 +58,8 @@ inputKey (EventKey (Char c) Down _ _) gstate
     | c == 'a'    = changeDirection West
     | c == 'd'    = changeDirection East
     | c == 'p'    = gstate { playState = changePlayState gstate }
-    | c == 'g'    = gstate { playState = GameOver }         -- TEST GAMEOVER
-    | c == 'h'    = gstate { highScores = [20, 20, 0, 20, 20] }         -- TEST GAMEOVER
+    | c == 'g'    = gstate { playState = GameOver }                     -- TEST GAMEOVER
+    | c == 'h'    = gstate { highScores = [20, 20, 0, 20, 20] }         -- TEST HIGH SCORES
     where changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate)}
             where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 
@@ -123,7 +123,18 @@ playerChangeLocation player = case playerDirection player of
   where (x, y) = playerLocation player
 
 
--- TODO: hoe zou dit handiger kunnen? Liever geen code dupliceren
+-- TODO: hoe zou dit handiger kunnen? Liever geen code dupliceren. -- het kan net iets beter maar dit lijkt me prima, is erg overzichtelijk.
+-- zie volgende voorbeeld hoe het ook kan. maar vind ik minder overzichtelijk.
+
+-- ghostChangeLocation :: Ghost -> Ghost
+-- ghostChangeLocation ghost = case ghostDirection ghost of
+--   West  -> functie (x - 1, y)
+--   East  -> functie (x + 1, y)
+--   North -> functie (x, y + 1)
+--   South -> functie (x, y - 1)
+--   where functie (x, y) = ghost { ghostLocation = (x, y) }
+--   where (x, y) = ghostLocation ghost
+
 ghostChangeLocation :: Ghost -> Ghost
 ghostChangeLocation ghost = case ghostDirection ghost of
   West  -> ghost { ghostLocation = (x - 1, y) }
@@ -132,7 +143,7 @@ ghostChangeLocation ghost = case ghostDirection ghost of
   South -> ghost { ghostLocation = (x, y - 1) }
   where (x, y) = ghostLocation ghost
 
--- | Changes the state from begin to playing but immediately back to paused
+-- | Changes the state based on the current state and pressed key
 changePlayState :: GameState -> PlayState 
 changePlayState gstate = case playState gstate of 
   Begin     -> Playing
