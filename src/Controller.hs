@@ -13,7 +13,7 @@ step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
       Begin     -> do 
                       highScores <- readF
-                      return $ initialState { highScores = highScores }
+                      return $ initialState { highScores = highScores}
       Playing   -> return $ updateGameState gstate
       GameOver  -> do   
                       writeF gstate
@@ -32,7 +32,8 @@ inputKey (EventKey (Char c) Down _ _) gstate
     | c == 'a'    = changeDirection West
     | c == 'd'    = changeDirection East
     | c == 'p'    = gstate { playState = changePlayState gstate }
-    | c == 'g'    = gstate { playState = GameOver } -- TEST GAMEOVER
+    | c == 'g'    = gstate { playState = GameOver }         -- TEST GAMEOVER
+    | c == 'h'    = gstate { highScores = [20, 20, 0, 20, 20] }         -- TEST GAMEOVER
     where changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate)}
             where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 
