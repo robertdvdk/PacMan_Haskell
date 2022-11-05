@@ -3,6 +3,7 @@
 module Model where
 
 import Graphics.Gloss
+import Data.List
 
 -- The Gamestate Model
 data GameState = GameState {
@@ -42,13 +43,17 @@ data Eatable       = IsEatable | NotEatable
 
 data Level = Level {
   maze :: Maze,
-  ghostCage :: Cage
+  ghostCage :: Cage,
+  food :: Food,
+  largeFood :: LargeFood
 }
 type Maze = [Location]
 type Cage = [Location]
+type Food = [Location]
+type LargeFood = [Location]
 
 -- Level and Initial State
-makeLevelRectangle :: (Location, Location) -> Maze
+makeLevelRectangle :: (Location, Location) -> [Location]
 makeLevelRectangle ((x1, y1), (x2, y2)) = [(x, y) | x <- [x1..x2], y <- [y1, y2]] ++ [(x, y) | x <- [x1, x2], y <- [y1..y2]]
 
 maze1 = concatMap makeLevelRectangle 
@@ -68,8 +73,27 @@ maze1 = concatMap makeLevelRectangle
 
 cage1 = makeLevelRectangle ((-6, 14), (-6, 15))
 
+food1 = nub $ concatMap makeLevelRectangle
+  [((-17, -17),  (-17, 17)),
+   ((-17, 17),  (-7, 17)),
+   ((7, 17),    (17, 17)),
+   ((-17, -17),   (17, -17)),
+   ((17, -17),    (17, 17)),
+   ((-7, 0),    (7, 0)),
+   ((-7, -2),   (-7, 16)),
+   ((7, -7),    (7, 16)),
+   ((-16, -2),  (7, -2)),
+   ((7, 7),     (16, 7)),
+   ((-16, -7),  (16, -7)),
+   ((-16, -11), (16, -11)),
+   ((-16, -13), (16, -13)),
+   ((1, -13),   (1, -11)),
+   ((-1, -16),  (-1, -14))]
+
+largefood1 = nub $ concatMap makeLevelRectangle [((-17, -17), (-17, -17)), ((-17, 17), (-17, 17)), ((17, -17), (17, -17)), ((17, 17), (17, 17))]
+
 level1 :: Level
-level1 = Level maze1 cage1
+level1 = Level maze1 cage1 food1 largefood1
 
 firstGhost :: Ghost
 firstGhost = Ghost (0, 15) West East Red NotEatable InsideCage
@@ -78,4 +102,4 @@ initialPlayer :: Player
 initialPlayer = Player (0, 0) West West
 
 initialState :: GameState
-initialState = GameState Begin initialPlayer level1 1000 [0, 0, 0, 0, 0] firstGhost 0
+initialState = GameState Begin initialPlayer level1 10 [0, 0, 0, 0, 0] firstGhost 0

@@ -7,6 +7,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
 import ReadWrite
+import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
@@ -28,14 +29,16 @@ input e gstate = return (inputKey e gstate)
 updateGameState :: GameState -> IO GameState
 updateGameState gstate = do 
                             let gstate' = movePlayer (gstate {player = playerChangeDirection (maze (level gstate)) (player gstate)})
-                            let gstate'' = flashCage gstate'
-                            let gstate''' = gstate'' {ghost1 = checkGhostInCage (ghostCage (level gstate'')) (ghost1 gstate'')}
-                            moveGhost gstate''
---                             if checkPlayerGhostCollision gstate then (return gstate'' { playState = GameOver }) else return gstate''
--- START OF GAMEOVER
--- checkPlayerGhostCollision gstate = checkPlayerGhostCollision' (player gstate) (ghost1 gstate) 
---   where checkPlayerGhostCollision' player ghost = checkPlayerGhostCollision'' (playerLocation player) (ghostLocation ghost)
---           where  checkPlayerGhostCollision'' (x1, y1) (x2, y2) = x1 == x2 && y1 == y2
+                            let gstate'' = eatFood gstate'
+                            let gstate''' = flashCage gstate''
+                            let gstate'''' = gstate''' {ghost1 = checkGhostInCage (ghostCage (level gstate''')) (ghost1 gstate''')}
+                            gstate''''' <- moveGhost gstate'''
+                            if checkPlayerGhostCollision gstate''''' then (return gstate''''' { playState = GameOver }) else return gstate'''''
+
+-- | Check if a player either collided with a ghost this frame, or will collide in the next frame. If so, it's game over.
+checkPlayerGhostCollision gstate = checkPlayerGhostCollision' (player gstate) (ghost1 gstate) 
+  where checkPlayerGhostCollision' player ghost = (checkPlayerGhostCollision'' (playerLocation player) (ghostLocation ghost)) || (checkPlayerGhostCollision'' (playerLocation (playerChangeLocation player)) (ghostLocation ghost))
+          where  checkPlayerGhostCollision'' (x1, y1) (x2, y2) = (x1 == x2 && y1 == y2)
 
 -- | Check if there is a wall in the given direction. If there is not, keep moving. If there is, choose a random next direction.
 moveGhost :: GameState -> IO GameState
@@ -74,6 +77,15 @@ inputKey _ gstate = gstate
 flashCage :: GameState -> GameState
 flashCage gstate | frames gstate == 10 = gstate {frames = 0}
                  | otherwise = gstate {frames = (frames gstate + 1)}
+
+eatFood :: GameState -> GameState
+eatFood gstate | playerLocation (player gstate) `elem` food (level gstate) = gstate {score = (score gstate + 10), level = (removeFood (level gstate))}
+               | playerLocation (player gstate) `elem` largeFood (level gstate) = gstate {score = (score gstate + 50), level = (removeLargeFood (level gstate))}
+               | otherwise = gstate
+  where removeFood :: Level -> Level
+        removeFood level = level {food = delete (playerLocation (player gstate)) (food level)}
+        removeLargeFood :: Level -> Level
+        removeLargeFood level = level {largeFood = delete (playerLocation (player gstate)) (largeFood level)}
 
  -- | Checks if Pac-Man can make a turn
 playerAbleToChangeDirection :: Maze -> Player -> Bool 
@@ -119,7 +131,7 @@ cageInDirection cage dir (x, y) = case dir of
   North -> (x, y + 1) `elem` cage
   South -> (x, y - 1) `elem` cage
 
--- | Change location based on the direction 
+-- | Change location of player based on player's direction 
 playerChangeLocation :: Player -> Player
 playerChangeLocation player = case playerDirection player of 
   West  -> player { playerLocation = (x - 1, y) }
@@ -129,18 +141,7 @@ playerChangeLocation player = case playerDirection player of
   where (x, y) = playerLocation player
 
 
--- TODO: hoe zou dit handiger kunnen? Liever geen code dupliceren. -- het kan net iets beter maar dit lijkt me prima, is erg overzichtelijk.
--- zie volgende voorbeeld hoe het ook kan. maar vind ik minder overzichtelijk.
-
--- ghostChangeLocation :: Ghost -> Ghost
--- ghostChangeLocation ghost = case ghostDirection ghost of
---   West  -> functie (x - 1, y)
---   East  -> functie (x + 1, y)
---   North -> functie (x, y + 1)
---   South -> functie (x, y - 1)
---   where functie (x, y) = ghost { ghostLocation = (x, y) }
---   where (x, y) = ghostLocation ghost
-
+-- | Change location of ghost based on ghost's direction
 ghostChangeLocation :: Ghost -> Ghost
 ghostChangeLocation ghost = case ghostDirection ghost of
   West  -> ghost { ghostLocation = (x - 1, y) }

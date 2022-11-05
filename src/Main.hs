@@ -10,7 +10,7 @@ import Graphics.Gloss.Interface.IO.Game
 main :: IO ()
 main = do
     highScores <- readF
-    playIO (InWindow "Pac-Man" (400, 400) (0, 0)) -- Or FullScreen
+    playIO (InWindow "Pac-Man" (500, 500) (0, 0)) -- Or FullScreen
               black            -- Background color
               10               -- Frames per second
               initialState { highScores = highScores }     -- Initial state
