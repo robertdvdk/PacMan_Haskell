@@ -26,10 +26,16 @@ input e gstate = return (inputKey e gstate)
 
 -- | Update player's direction, location, and ghosts' location
 updateGameState :: GameState -> IO GameState
-updateGameState gstate = do let gstate' = movePlayer (gstate {player = playerChangeDirection (maze (level gstate)) (player gstate)})
+updateGameState gstate = do 
+                            let gstate' = movePlayer (gstate {player = playerChangeDirection (maze (level gstate)) (player gstate)})
                             let gstate'' = flashCage gstate'
                             let gstate''' = gstate'' {ghost1 = checkGhostInCage (ghostCage (level gstate'')) (ghost1 gstate'')}
                             moveGhost gstate''
+--                             if checkPlayerGhostCollision gstate then (return gstate'' { playState = GameOver }) else return gstate''
+-- START OF GAMEOVER
+-- checkPlayerGhostCollision gstate = checkPlayerGhostCollision' (player gstate) (ghost1 gstate) 
+--   where checkPlayerGhostCollision' player ghost = checkPlayerGhostCollision'' (playerLocation player) (ghostLocation ghost)
+--           where  checkPlayerGhostCollision'' (x1, y1) (x2, y2) = x1 == x2 && y1 == y2
 
 -- | Check if there is a wall in the given direction. If there is not, keep moving. If there is, choose a random next direction.
 moveGhost :: GameState -> IO GameState
