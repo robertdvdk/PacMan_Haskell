@@ -15,7 +15,7 @@ data GameState = GameState {
   ghost1      :: Ghost,
   frames      :: Int}
 
-data PlayState  = Begin | Playing | Paused | GameOver
+data PlayState  = Begin | Start | Playing | Paused | GameOver | Win
 type Score      = Int
 
 -- The Player Model
@@ -54,10 +54,11 @@ instance Entity Player where
   entityDirection = playerDirection
 
 data Level = Level {
-  maze      :: Maze,
-  ghostCage :: Cage,
-  food      :: Food,
-  largeFood :: LargeFood
+  levelColor  :: Color,
+  maze        :: Maze,
+  ghostCage   :: Cage,
+  food        :: Food,
+  largeFood   :: LargeFood
 }
 
 type Maze       = [Location]
@@ -65,7 +66,7 @@ type Cage       = [Location]
 type Food       = [Location]
 type LargeFood  = [Location]
 
--- Level and Initial State
+-- | Level and Initial State
 makeLevelRectangle :: (Location, Location) -> [Location]
 makeLevelRectangle ((x1, y1), (x2, y2)) = [(x, y) | x <- [x1..x2], y <- [y1, y2]] ++ [(x, y) | x <- [x1, x2], y <- [y1..y2]]
 
@@ -108,7 +109,10 @@ food1 = foldr delete (nub $ concatMap makeLevelRectangle
    largefood1
 
 level1 :: Level
-level1 = Level maze1 cage1 food1 largefood1
+level1 = Level blue maze1 cage1 food1 largefood1
+
+level2 :: Level
+level2 = Level red  maze1 cage1 food1 largefood1
 
 firstGhost :: Ghost
 firstGhost = Ghost (0, 15) West East Red NotEatable InsideCage

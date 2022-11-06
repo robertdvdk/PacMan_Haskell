@@ -4,6 +4,7 @@ import Controller
 import Model
 import View
 import ReadWrite
+import Movement
 
 import Graphics.Gloss.Interface.IO.Game
 
