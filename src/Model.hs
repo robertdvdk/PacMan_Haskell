@@ -38,31 +38,32 @@ data Ghost = Ghost {
   ghostOutsideCage    :: GhostOutsideCage}
 
 data GhostOutsideCage = InsideCage | OutsideCage
-data GhostColor    = Red | Pink | Yellow | Blue
-data Eatable       = IsEatable | NotEatable
+data GhostColor       = Red | Pink | Yellow | Blue
+data Eatable          = IsEatable | NotEatable
 
 class Entity a where
-  entityLocation :: a -> Location
+  entityLocation  :: a -> Location
   entityDirection :: a -> Direction
 
 instance Entity Ghost where
-  entityLocation = ghostLocation
+  entityLocation  = ghostLocation
   entityDirection = ghostDirection
 
 instance Entity Player where
-  entityLocation = playerLocation
+  entityLocation  = playerLocation
   entityDirection = playerDirection
 
 data Level = Level {
-  maze :: Maze,
+  maze      :: Maze,
   ghostCage :: Cage,
-  food :: Food,
+  food      :: Food,
   largeFood :: LargeFood
 }
-type Maze = [Location]
-type Cage = [Location]
-type Food = [Location]
-type LargeFood = [Location]
+
+type Maze       = [Location]
+type Cage       = [Location]
+type Food       = [Location]
+type LargeFood  = [Location]
 
 -- Level and Initial State
 makeLevelRectangle :: (Location, Location) -> [Location]
