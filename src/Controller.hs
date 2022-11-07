@@ -9,21 +9,20 @@ import System.Random
 import ReadWrite
 import Data.List
 import Movement
+import Levels
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
-      Begin     -> do 
+      StartNew  -> do
+                      return $ gstate { playState = Start, player = initialPlayer, level = changeLevel gstate, ghost1 = firstGhost }
+      Start     -> do 
                       highScores <- readF
-                      return $ initialState { highScores = highScores }
-      Start     -> do
-                      return $ gstate { player = initialPlayer, level = level2, ghost1 = firstGhost }
+                      return $ gstate { player = initialPlayer, highScores = highScores, ghost1 = firstGhost }
       Playing   -> updateGameState gstate
       GameOver  -> do   
                       writeF gstate
-                      return $ gstate
-      Win       -> do
-                      return $ gstate
+                      return $ gstate  
       _         -> return $ gstate 
 
 -- | Handle user input
@@ -63,9 +62,15 @@ inputKey _ gstate = gstate
 -- | Changes the state based on the current state and pressed key
 changePlayState :: GameState -> PlayState 
 changePlayState gstate = case playState gstate of 
-  Begin     -> Playing
+  StartNew  -> Start
   Start     -> Playing
   Playing   -> Paused
   Paused    -> Playing
-  GameOver  -> Begin
-  Win       -> Start
+  GameOver  -> Start
+  Win       -> StartNew
+
+  -- | Changes the level if the player has won a level
+changeLevel :: GameState -> Level
+changeLevel gstate = case level gstate of
+  level1 -> level2 --- ERROR Pattern match is redundant AND WON'T CHANGE LEVEL2 IN LEVEL3.
+  level2 -> level3

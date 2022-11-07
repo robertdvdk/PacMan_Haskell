@@ -55,7 +55,7 @@ viewScore score = [translate (-250) (-240) (color white (scale 0.1 0.1 (text ("S
 viewPlayState :: PlayState -> [Picture]
 viewPlayState playState = [translate (-250) 230 (color white (scale 0.1 0.1 (text playStateText)))]
   where playStateText = case playState of 
-          Begin     -> "Press 'p' to begin!"
+          Start     -> "Press 'p' to start!"
           Paused    -> "Paused. Press 'p' to resume."
           GameOver  -> "Game Over! Press 'p' to go to start."
           Win       -> "Congratulations! Press 'p' to go to the next level."

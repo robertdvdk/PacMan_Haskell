@@ -19,4 +19,5 @@ executable gloss-counter
                      , View
                      , ReadWrite
                      , Movement
+                     , Levels
   default-language:    Haskell2010

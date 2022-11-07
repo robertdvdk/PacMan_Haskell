@@ -5,6 +5,7 @@ import Model
 import View
 import ReadWrite
 import Movement
+import Levels
 
 import Graphics.Gloss.Interface.IO.Game
 

@@ -3,10 +3,7 @@
 module Movement where
 
 import Model
-import Graphics.Gloss
-import Graphics.Gloss.Interface.IO.Game
 import System.Random
-import ReadWrite
 import Data.List
 
 -- | Check if a player either collided with a ghost this frame, or will collide in the next frame. If so, it's game over.
