@@ -7,7 +7,7 @@ import System.Random
 import Data.List
 
 checkEverythingEaten :: GameState -> Bool -- Needs to be made
-checkEverythingEaten gstate = True
+checkEverythingEaten gstate = False
 
 -- | Check if a player either collided with a ghost this frame, or will collide in the next frame. If so, it's game over.
 checkPlayerGhostCollision :: GameState -> Bool

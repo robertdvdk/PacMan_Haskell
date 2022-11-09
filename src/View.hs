@@ -10,17 +10,18 @@ import Data.List
 view :: GameState -> IO Picture
 view = return . viewPure
 
+
 viewPure :: GameState -> Picture 
 viewPure gstate = pictures ( 
-  viewPlayState   (playState gstate)  ++
-  viewPlayer      (player gstate)     ++
-  viewLevel       (level gstate) (frames gstate) ++
-  viewScore       (score gstate)      ++
-  viewHighScores  (highScores gstate) ++
+  viewPlayState   (playState gstate)              ++
+  viewPlayerAlive     gstate           ++
+  viewLevel       (level gstate)  (frames gstate) ++
+  viewScore       (score gstate)                  ++
+  viewHighScores  (highScores gstate)             ++
   viewGhost       (ghost1 gstate))
-  
+
 -- | View Level
-viewLevel :: Level -> Int -> [Picture]
+viewLevel :: Level -> Float -> [Picture]
 viewLevel level frames = 
   viewMaze (maze level) (levelColor level)  ++
   viewCage (ghostCage level) frames         ++
@@ -31,13 +32,32 @@ viewLevel level frames =
 viewMaze :: Maze -> Color -> [Picture]
 viewMaze maze levelColor = [translate (x * 10) (y * 10) (color levelColor (rectangleSolid 10 10)) | (x, y) <- maze]
 
-viewCage :: Cage -> Int -> [Picture]
+viewCage :: Cage -> Float -> [Picture]
 viewCage cage f | f < 5     = [translate (x * 10) (y * 10) (color blue    (rectangleSolid 10 10)) | (x, y) <- cage]
                 | otherwise = [translate (x * 10) (y * 10) (color yellow  (rectangleSolid 10 10)) | (x, y) <- cage]
 
-viewPlayer :: Player -> [Picture]
-viewPlayer player = [translate (x * 10) (y * 10) (color yellow (circleSolid 5))]
-  where (x, y) = playerLocation player
+-- viewPlayer :: GameState -> Float -> [Picture]
+-- viewPlayer gstate f = case playState gstate of
+--   GameOver  -> viewPlayerDead  gstate f
+--   _         -> viewPlayerAlive gstate 
+
+-- viewPlayerDead :: GameState -> Float -> [Picture]
+-- viewPlayerDead gstate f 
+--   |           f < 3     = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage1)]
+--   | 3 <= f && f < 6     = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage2)]
+--   | 6 <= f && f < 9     = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage3)]
+--   | otherwise           = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage4)]
+--   where (x, y) = playerLocation (player gstate)
+--         [stage1, stage2, stage3, stage4] = pacmanStages gstate
+
+viewPlayerAlive :: GameState -> [Picture]
+viewPlayerAlive gstate = case (playerDirection (player gstate)) of
+  East  -> rotatePacman 0   (pacman gstate)
+  South -> rotatePacman 90  (pacman gstate)
+  West  -> rotatePacman 180 (pacman gstate)
+  North -> rotatePacman 270 (pacman gstate)
+  where rotatePacman angle stage1 = [translate (x * 10) (y * 10) (scale 0.03 0.03 (rotate angle stage1))]
+          where (x, y) = playerLocation (player gstate)
 
 viewFood :: Food -> [Picture]
 viewFood food = [translate (x * 10) (y * 10) (color white (circleSolid 1 )) | (x, y) <- food]

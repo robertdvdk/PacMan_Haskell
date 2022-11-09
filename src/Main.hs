@@ -8,6 +8,7 @@ import Movement
 import Levels
 
 import Graphics.Gloss.Interface.IO.Game
+import Graphics.Gloss.Data.Bitmap
 
 main :: IO ()
 main = do

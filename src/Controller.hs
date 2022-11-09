@@ -14,18 +14,30 @@ import Levels
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
-      Start     -> do 
-                      highScores <- readF
-                      return $ gstate { player = initialPlayer, highScores = highScores, ghost1 = initialGhost1 }
+      Start     -> do                       
+                      highScores  <- readF
+                      stage1      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man1.bmp"
+                      -- stage2      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man2.bmp"
+                      -- stage3      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man3.bmp"
+                      -- stage4      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man4.bmp"
+                      -- let pacmanStages = [stage1, stage2, stage3, stage4]
+                      return $ gstate { pacman = stage1, player = initialPlayer, highScores = highScores, ghost1 = initialGhost1 }
       Playing   -> updateGameState gstate
       GameOver  -> do   
                       writeF gstate
-                      return $ gstate
+                      animateGstate gstate
       _         -> return $ gstate 
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
+
+animateGstate :: GameState -> IO GameState
+animateGstate gstate = 
+  do
+    stage4      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man4.bmp"
+    return gstate { pacman = stage4 }
+
 
 -- | Update player's direction, location, and ghosts' location
 updateGameState :: GameState -> IO GameState

@@ -7,13 +7,14 @@ import Data.List
 
 -- | The Gamestate Model
 data GameState = GameState {
+  pacman:: Picture,
   playState   :: PlayState,
   player      :: Player,
   level       :: Level,
   score       :: Score,
   highScores  :: [Int],
   ghost1      :: Ghost,
-  frames      :: Int}
+  frames      :: Float}
 
 data PlayState  = StartNew | Start | Playing | Paused | GameOver | Win
 type Score      = Int
