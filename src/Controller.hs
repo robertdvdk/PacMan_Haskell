@@ -14,15 +14,13 @@ import Levels
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
-      StartNew  -> do
-                      return $ gstate { playState = Start, player = initialPlayer, level = changeLevel gstate, ghost1 = firstGhost }
       Start     -> do 
                       highScores <- readF
-                      return $ gstate { player = initialPlayer, highScores = highScores, ghost1 = firstGhost }
+                      return $ gstate { player = initialPlayer, highScores = highScores, ghost1 = initialGhost1 }
       Playing   -> updateGameState gstate
       GameOver  -> do   
                       writeF gstate
-                      return $ gstate  
+                      return $ gstate
       _         -> return $ gstate 
 
 -- | Handle user input
@@ -40,10 +38,9 @@ updateGameState gstate =
     gstate''''' <- moveGhost gstate''''
     if checkPlayerGhostCollision gstate''''' 
       then (return gstate''''' { playState = GameOver }) 
-      else return gstate'''''
-    if True -- Needs function to check if all food is eaten
-      then return gstate''''' { playState = Win }
-      else return gstate'''''
+      else if checkEverythingEaten gstate'''''
+        then return gstate''''' { playState = Win }
+        else return gstate'''''
                             
 -- | PURE PART STARTS HERE
 inputKey :: Event -> GameState -> GameState
@@ -52,7 +49,7 @@ inputKey (EventKey (Char c) Down _ _) gstate
     | c == 's'    = changeDirection South
     | c == 'a'    = changeDirection West
     | c == 'd'    = changeDirection East
-    | c == 'p'    = gstate { playState = changePlayState gstate }
+    | c == 'p'    = changeGameState gstate
     | c == 'g'    = gstate { playState = GameOver }                     -- TEST GAMEOVER
     | c == 'h'    = gstate { highScores = [20, 20, 0, 20, 20] }         -- TEST HIGH SCORES
     where changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate)}
@@ -60,14 +57,13 @@ inputKey (EventKey (Char c) Down _ _) gstate
 inputKey _ gstate = gstate 
 
 -- | Changes the state based on the current state and pressed key
-changePlayState :: GameState -> PlayState 
-changePlayState gstate = case playState gstate of 
-  StartNew  -> Start
-  Start     -> Playing
-  Playing   -> Paused
-  Paused    -> Playing
-  GameOver  -> Start
-  Win       -> StartNew
+changeGameState :: GameState -> GameState 
+changeGameState gstate = case playState gstate of 
+  Start     -> gstate { playState = Playing }
+  Playing   -> gstate { playState = Paused }
+  Paused    -> gstate { playState = Playing }
+  GameOver  -> gstate { playState = Start, score = 0, level = (level gstate) {food = food1, largeFood = largefood1 } }
+  Win       -> gstate { playState = Start, level = changeLevel gstate }
 
   -- | Changes the level if the player has won a level
 changeLevel :: GameState -> Level

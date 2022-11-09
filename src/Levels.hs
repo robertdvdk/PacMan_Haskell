@@ -57,11 +57,11 @@ level2 = Level red maze1 cage1 food1 largefood1
 level3 :: Level
 level3 = Level green maze1 cage1 food1 largefood1
 
-firstGhost :: Ghost
-firstGhost = Ghost (0, 15) West East Red NotEatable InsideCage
+initialGhost1 :: Ghost
+initialGhost1 = Ghost (0, 15) West East Red NotEatable InsideCage
 
 initialPlayer :: Player
 initialPlayer = Player (0, 0) West West
 
 initialState :: GameState
-initialState = GameState Start initialPlayer level1 10 [0, 0, 0, 0, 0] firstGhost 0
+initialState = GameState Start initialPlayer level1 10 [0, 0, 0, 0, 0] initialGhost1 0
