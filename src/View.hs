@@ -44,11 +44,11 @@ viewPlayer gstate t = case playState gstate of
 
 viewPlayerDying :: GameState -> Float -> [Picture]
 viewPlayerDying gstate t
-  |           t < 4 = showPacManStage stage1
-  | 4 <= t && t < 7 = showPacManStage stage2
-  | 7 <= t && t < 10 = showPacManStage stage3
-  | 10 <= t && t < 13 = showPacManStage stage4
-  | otherwise       = showPacManStage stage5
+  |             t < 4   = showPacManStage stage1
+  | 4   <= t && t < 7   = showPacManStage stage2
+  | 7   <= t && t < 10  = showPacManStage stage3
+  | 10  <= t && t < 13  = showPacManStage stage4
+  | otherwise           = showPacManStage stage5
   where [stage1, stage2, stage3, stage4, stage5] = pacManStages gstate
         showPacManStage stage = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage)]
             where (x, y) = playerLocation (player gstate)
