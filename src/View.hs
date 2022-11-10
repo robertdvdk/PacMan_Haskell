@@ -14,11 +14,12 @@ view = return . viewPure
 viewPure :: GameState -> Picture 
 viewPure gstate = pictures ( 
   viewPlayState   (playState gstate)              ++
-  viewPlayerAlive     gstate           ++
+  viewPlayer      gstate          (timer gstate)  ++
   viewLevel       (level gstate)  (frames gstate) ++
   viewScore       (score gstate)                  ++
   viewHighScores  (highScores gstate)             ++
-  viewGhost       (ghost1 gstate))
+  viewGhost       gstate
+  )
 
 -- | View Level
 viewLevel :: Level -> Float -> [Picture]
@@ -36,38 +37,42 @@ viewCage :: Cage -> Float -> [Picture]
 viewCage cage f | f < 5     = [translate (x * 10) (y * 10) (color blue    (rectangleSolid 10 10)) | (x, y) <- cage]
                 | otherwise = [translate (x * 10) (y * 10) (color yellow  (rectangleSolid 10 10)) | (x, y) <- cage]
 
--- viewPlayer :: GameState -> Float -> [Picture]
--- viewPlayer gstate f = case playState gstate of
---   GameOver  -> viewPlayerDead  gstate f
---   _         -> viewPlayerAlive gstate 
+viewPlayer :: GameState -> Float -> [Picture]
+viewPlayer gstate t = case playState gstate of
+  GameOver  -> viewPlayerDying  gstate t
+  _         -> viewPlayerAlive gstate 
 
--- viewPlayerDead :: GameState -> Float -> [Picture]
--- viewPlayerDead gstate f 
---   |           f < 3     = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage1)]
---   | 3 <= f && f < 6     = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage2)]
---   | 6 <= f && f < 9     = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage3)]
---   | otherwise           = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage4)]
---   where (x, y) = playerLocation (player gstate)
---         [stage1, stage2, stage3, stage4] = pacmanStages gstate
+viewPlayerDying :: GameState -> Float -> [Picture]
+viewPlayerDying gstate t
+  |           t < 2 = showPacManStage stage1
+  | 2 <= t && t < 4 = showPacManStage stage2
+  | 4 <= t && t < 6 = showPacManStage stage3
+  | 6 <= t && t < 8 = showPacManStage stage4
+  | otherwise       = showPacManStage stage5
+  where [stage1, stage2, stage3, stage4, stage5] = pacManStages gstate
+        showPacManStage stage = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage)]
+            where (x, y) = playerLocation (player gstate)
+                
 
 viewPlayerAlive :: GameState -> [Picture]
-viewPlayerAlive gstate = case (playerDirection (player gstate)) of
-  East  -> rotatePacman 0   (pacman gstate)
-  South -> rotatePacman 90  (pacman gstate)
-  West  -> rotatePacman 180 (pacman gstate)
-  North -> rotatePacman 270 (pacman gstate)
-  where rotatePacman angle stage1 = [translate (x * 10) (y * 10) (scale 0.03 0.03 (rotate angle stage1))]
-          where (x, y) = playerLocation (player gstate)
+viewPlayerAlive gstate = let rotatePacMan angle (stage1:_)= [translate (x * 10) (y * 10) (scale 0.03 0.03 (rotate angle stage1))] 
+  in case (playerDirection (player gstate)) of
+  East  -> rotatePacMan 0   (pacManStages gstate)
+  South -> rotatePacMan 90  (pacManStages gstate)
+  West  -> rotatePacMan 180 (pacManStages gstate)
+  North -> rotatePacMan 270 (pacManStages gstate)
+  where (x, y) = playerLocation (player gstate)
 
 viewFood :: Food -> [Picture]
 viewFood food = [translate (x * 10) (y * 10) (color white (circleSolid 1 )) | (x, y) <- food]
 
 viewLargeFood :: LargeFood -> [Picture]
-viewLargeFood largefood = [translate (x * 10) (y * 10) (color white (circleSolid 4 )) | (x, y) <- largefood]
+viewLargeFood largefood = [translate (x * 10) (y * 10) (color white (circleSolid 4)) | (x, y) <- largefood]
 
-viewGhost :: Ghost -> [Picture]
-viewGhost ghost = [translate (x * 10) (y * 10) (color red (circleSolid 5))]
-  where (x, y) = ghostLocation ghost
+viewGhost :: GameState -> [Picture]
+viewGhost gstate = [translate (x * 10) (y * 10) (scale 0.045 0.045 (color red redGhost))]
+  where (x, y) = ghostLocation (ghost1 gstate)
+        [redGhost, _, _, _] = ghostBitMaps gstate
 
 viewScore :: Score -> [Picture]
 viewScore score = [translate (-250) (-240) (color white (scale 0.1 0.1 (text ("Score:" ++ (show score)))))]

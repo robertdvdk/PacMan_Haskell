@@ -16,28 +16,26 @@ step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
       Start     -> do                       
                       highScores  <- readF
-                      stage1      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man1.bmp"
-                      -- stage2      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man2.bmp"
-                      -- stage3      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man3.bmp"
-                      -- stage4      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man4.bmp"
-                      -- let pacmanStages = [stage1, stage2, stage3, stage4]
-                      return $ gstate { pacman = stage1, player = initialPlayer, highScores = highScores, ghost1 = initialGhost1 }
+                      return $ gstate { player = initialPlayer, highScores = highScores, timer = 0 }
       Playing   -> updateGameState gstate
       GameOver  -> do   
                       writeF gstate
-                      animateGstate gstate
+                      dyingAnimation gstate
       _         -> return $ gstate 
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
 
-animateGstate :: GameState -> IO GameState
-animateGstate gstate = 
-  do
-    stage4      <- loadBMP "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/Pac-Man/pac-man4.bmp"
-    return gstate { pacman = stage4 }
+dyingAnimation :: GameState -> IO GameState
+dyingAnimation gstate = 
+  do 
+    let gstate' = setTimer gstate
+    return gstate' { ghost1 = initialGhost1 }
 
+-- | Increments the number of frames for the dying animation
+setTimer :: GameState -> GameState
+setTimer gstate = gstate {timer = (timer gstate + 1)}
 
 -- | Update player's direction, location, and ghosts' location
 updateGameState :: GameState -> IO GameState

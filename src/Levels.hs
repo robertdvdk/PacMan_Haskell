@@ -64,4 +64,4 @@ initialPlayer :: Player
 initialPlayer = Player (0, 0) West West
 
 initialState :: GameState
-initialState = GameState (circleSolid 5) Start initialPlayer level1 10 [0, 0, 0, 0, 0] initialGhost1 0
+initialState = GameState [circleSolid 5] Start initialPlayer level1 10 [0, 0, 0, 0, 0] [circleSolid 5] initialGhost1 0 0
