@@ -14,7 +14,7 @@ data GameState = GameState {
   score       :: Score,
   highScores  :: [Int],
   ghostBitMaps:: [Picture],
-  ghost1      :: Ghost,
+  ghosts      :: [Ghost],
   frames      :: Float,
   timer       :: Float
   }
@@ -33,7 +33,7 @@ data Direction      = North | South | West | East deriving Eq
 type NextDirection  = Direction
 
 -- | The Ghost Model
-data Ghost = Ghost {
+data Ghost = None | Ghost {
   ghostLocation       :: Location,
   ghostDirection      :: Direction,
   ghostNextDirection  :: NextDirection,
@@ -63,10 +63,15 @@ data Level = Level {
   maze        :: Maze,
   ghostCage   :: Cage,
   food        :: Food,
-  largeFood   :: LargeFood
+  largeFood   :: LargeFood,
+  playerSpawn :: PlayerSpawn,
+  numGhosts   :: Int,
+  ghostsSpawn :: [GhostSpawn]
 }
 
 type Maze       = [Location]
 type Cage       = [Location]
 type Food       = [Location]
 type LargeFood  = [Location]
+type PlayerSpawn = Location
+type GhostSpawn = Location

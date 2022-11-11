@@ -10,7 +10,7 @@ filePathRobert = "/Users/robertvdklis/Documents/code/Courses/functioneel-program
 
 readF :: IO [Int]
 readF = do  --make highscores a list of strings and give that to high scores then alter view
-            content <- readFile filePathJurre
+            content <- readFile filePathRobert
             return (map read (lines content))
 
 updateHighScore :: GameState -> [Int]
@@ -22,5 +22,5 @@ updateHighScore gstate  | score gstate > minimum scores = changeElement (score g
                                             | otherwise = x     : (changeElement score el xs)
 
 writeF :: GameState -> IO ()
-writeF gstate = writeFile filePathJurre (unlines (map show (sort (updateHighScore gstate))))
+writeF gstate = writeFile filePathRobert (unlines (map show (sort (updateHighScore gstate))))
 

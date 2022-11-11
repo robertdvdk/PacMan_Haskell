@@ -18,7 +18,7 @@ viewPure gstate = pictures (
   viewLevel       (level gstate)  (frames gstate) ++
   viewScore       (score gstate)                  ++
   viewHighScores  (highScores gstate)             ++
-  viewGhost       gstate
+  viewGhost       gstate (ghosts gstate)
   )
 
 -- | View Level
@@ -69,9 +69,15 @@ viewFood food = [translate (x * 10) (y * 10) (color white (circleSolid 1 )) | (x
 viewLargeFood :: LargeFood -> [Picture]
 viewLargeFood largefood = [translate (x * 10) (y * 10) (color white (circleSolid 4)) | (x, y) <- largefood]
 
-viewGhost :: GameState -> [Picture]
-viewGhost gstate = [translate (x * 10) (y * 10) (scale 0.045 0.045 (color red redGhost))]
-  where (x, y) = ghostLocation (ghost1 gstate)
+viewGhost :: GameState -> [Ghost] -> [Picture]
+-- viewGhost gstate = [translate (x * 10) (y * 10) (scale 0.045 0.045 (color red redGhost))] -- ff veranderd omdat ik de bitmap niet heb
+viewGhost gstate [] = []
+viewGhost gstate (g:gs) = case ghostColor g of
+  Red -> [translate (x * 10) (y * 10) (scale 1 1 (color red (circleSolid 5)))] ++ viewGhost gstate gs
+  Blue -> [translate (x * 10) (y * 10) (scale 1 1 (color blue (circleSolid 5)))] ++ viewGhost gstate gs
+  Yellow -> [translate (x * 10) (y * 10) (scale 1 1 (color yellow (circleSolid 5)))] ++ viewGhost gstate gs
+  Pink -> [translate (x * 10) (y * 10) (scale 1 1 (color magenta (circleSolid 5)))] ++ viewGhost gstate gs
+  where (x, y) = ghostLocation g
         [redGhost, _, _, _] = ghostBitMaps gstate
 
 viewScore :: Score -> [Picture]

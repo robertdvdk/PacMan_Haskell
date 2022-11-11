@@ -10,13 +10,14 @@ import ReadWrite
 import Data.List
 import Movement
 import Levels
+import Control.Monad.State
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
       Start     -> do                       
                       highScores  <- readF
-                      return $ gstate { player = initialPlayer, highScores = highScores, timer = 0 }
+                      return $ gstate { player = Player (playerSpawn (level gstate)) West West, highScores = highScores, timer = 0 }
       Playing   -> updateGameState gstate
       GameOver  -> do   
                       writeF gstate
@@ -31,7 +32,7 @@ dyingAnimation :: GameState -> IO GameState
 dyingAnimation gstate = 
   do 
     let gstate' = setTimer gstate
-    return gstate' { ghost1 = initialGhost1 }
+    return gstate' {ghosts = initialGhosts1}
 
 -- | Increments the number of frames for the dying animation
 setTimer :: GameState -> GameState
@@ -44,9 +45,10 @@ updateGameState gstate =
     let gstate' = movePlayer (gstate {player = playerChangeDirection (maze (level gstate)) (player gstate)})
     let gstate'' = eatFood gstate'
     let gstate''' = flashCage gstate''
-    let gstate'''' = gstate''' {ghost1 = checkGhostInCage (ghostCage (level gstate''')) (ghost1 gstate''')}
-    gstate''''' <- moveGhost gstate''''
-    if checkPlayerGhostCollision gstate''''' 
+    let gstate'''' = gstate''' {ghosts = checkGhostInCage (ghostCage (level gstate''')) (ghosts gstate''')}
+    movedGhosts <- moveGhost gstate'''' (ghosts gstate'''')
+    let gstate''''' = gstate'''' {ghosts = movedGhosts}
+    if checkPlayerGhostCollision gstate''''' (ghosts gstate) 
       then (return gstate''''' { playState = GameOver }) 
       else if checkEverythingEaten gstate'''''
         then return gstate''''' { playState = Win }
