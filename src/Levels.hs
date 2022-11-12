@@ -13,16 +13,16 @@ makeLevelRectangle ((x1, y1), (x2, y2)) = [(x, y) | x <- [x1..x2], y <- [y1, y2]
 maze1 = concatMap makeLevelRectangle 
   [((-18, -18),  (18, 18)), 
   ((-6, 13),     (6, 18)),
-  ((-16, -1),     (-8, 16)),
-  ((-6, -1),      (6, -1)), 
-  ((8, 8),      (16, 16)), 
+  ((-16, -1),    (-8, 16)),
+  ((-6, -1),     (6, -1)), 
+  ((8, 8),       (16, 16)), 
   ((-6, 1),      (6, 11)), 
-  ((-16, -6),   (6, -3)), 
-  ((8, -6),     (16, 6)), 
+  ((-16, -6),    (6, -3)), 
+  ((8, -6),      (16, 6)), 
   ((-16, -10),   (16, -8)), 
-  ((-16, -12),  (0, -12)), 
-  ((2, -12),    (16, -12)), 
-  ((-16, -16),  (-2, -14)), 
+  ((-16, -12),   (0, -12)), 
+  ((2, -12),     (16, -12)), 
+  ((-16, -16),   (-2, -14)), 
   ((0, -16),     (16, -14))]
 
 cage1 = makeLevelRectangle ((-6, 14), (-6, 15))
@@ -50,7 +50,6 @@ food1 = foldr delete (nub $ concatMap makeLevelRectangle
 
 playerspawn1 = (0, 0)
 ghostspawn11 = (0, 15)
-
 
 maze2 = concatMap makeLevelRectangle
   [((-23, -23), (23, 23)),
@@ -90,7 +89,6 @@ maze2 = concatMap makeLevelRectangle
 cage2 = makeLevelRectangle ((-17, -22), (-17, -19))
 
 largefood2 = nub $ concatMap makeLevelRectangle [((-14, -14), (-14, -14)), ((-14, 14), (-14, 14)), ((14, -14), (14, -14)), ((14, 14), (14, 14))]
-
 
 food2 = foldr delete (nub $ concatMap makeLevelRectangle
   [((-22, 22), (22, 22)),
@@ -140,7 +138,6 @@ playerspawn2 = (22, 22)
 ghostspawn21 = (-22, -22)
 ghostspawn22 = (-23, -23)
 
-
 maze3 = concatMap makeLevelRectangle
   [((-24, -10), (24, 10)),
   ((20, -5), (24, 5)),
@@ -183,7 +180,6 @@ maze3 = concatMap makeLevelRectangle
   ((11, -8), (11, -6)),
   ((15, -8), (16, -6))
   ]
-
 
 cage3 = makeLevelRectangle ((20, -2), (20, 2))
 
@@ -244,25 +240,19 @@ ghostspawn32 = (0, 0)
 ghostspawn33 = (0, 0)
 
 level1 :: Level
-level1 = Level blue maze1 cage1 food1 largefood1 playerspawn1 1 [ghostspawn11]
+level1 = Level blue   maze1 cage1 food1 largefood1 playerspawn1 1 [ghostspawn11] 0
 
 level2 :: Level
-level2 = Level green maze2 cage2 food2 largefood2 playerspawn2 2 [ghostspawn21, ghostspawn22]
+level2 = Level green  maze2 cage2 food2 largefood2 playerspawn2 2 [ghostspawn21, ghostspawn22] 0
 
 level3 :: Level
-level3 = Level red maze3 cage3 food3 largefood3 playerspawn3 3 [ghostspawn31, ghostspawn32, ghostspawn33]
+level3 = Level red    maze3 cage3 food3 largefood3 playerspawn3 3 [ghostspawn31, ghostspawn32, ghostspawn33] 0
 
-initialGhosts1 :: [Ghost]
-initialGhosts1 = [Ghost (0, 15) West East Red NotEatable InsideCage]
+-- initialGhosts1 :: [Ghost]
+-- initialGhosts1 = [Ghost (0, 15) West East Red InsideCage]
 
-initialGhosts2 :: [Ghost]
-initialGhosts2 = [Ghost (-22, -20) West East Red NotEatable InsideCage, Ghost (-21, -21) West East Pink NotEatable InsideCage, Ghost (-22, -21) West West Yellow NotEatable InsideCage]
+-- initialGhosts2 :: [Ghost]
+-- initialGhosts2 = [Ghost (-22, -20) West East Red InsideCage, Ghost (-21,  -21) West East Pink NotEatable InsideCage, Ghost (-22, -21) West West Yellow NotEatable InsideCage]
 
-initialGhosts3 :: [Ghost]
-initialGhosts3 = [Ghost (22, 3) West West Red NotEatable InsideCage, Ghost (21, 2) West West Pink NotEatable InsideCage, Ghost (22, -2) West West Yellow NotEatable InsideCage]
-
-initialPlayer :: Player
-initialPlayer = Player (0, 0) West West
-
-initialState :: GameState
-initialState = GameState [circleSolid 5] Start initialPlayer level2 10 [0, 0, 0, 0, 0] [circleSolid 5] initialGhosts2 0 0
+-- initialGhosts3 :: [Ghost]
+-- initialGhosts3 = [Ghost (22,    3) West West Red InsideCage, Ghost (21,     2) West West Pink NotEatable InsideCage, Ghost (22, -2) West West Yellow NotEatable InsideCage]

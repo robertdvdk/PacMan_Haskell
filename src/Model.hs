@@ -7,26 +7,25 @@ import Data.List
 
 -- | The Gamestate Model
 data GameState = GameState {
-  pacManStages:: [Picture],
   playState   :: PlayState,
   player      :: Player,
   level       :: Level,
   score       :: Score,
   highScores  :: [Int],
-  ghostBitMaps:: [Picture],
-  ghosts      :: [Ghost],
-  frames      :: Float,
-  timer       :: Float
-  }
+  ghosts      :: [Ghost]
+}
 
-data PlayState  = StartNew | Start | Playing | Paused | GameOver | Win
+data PlayState  = Start | Playing | Paused | GameOver | Win
 type Score      = Int
 
 -- | The Player Model
 data Player = Player {
+  pacManBitMaps       :: [Picture],
   playerLocation      :: Location,
   playerDirection     :: Direction,
-  playerNextDirection :: NextDirection }
+  playerNextDirection :: NextDirection,
+  dyingTimer          :: Float
+}
 
 type Location       = (Float, Float)
 data Direction      = North | South | West | East deriving Eq
@@ -34,12 +33,13 @@ type NextDirection  = Direction
 
 -- | The Ghost Model
 data Ghost = None | Ghost {
+  ghostBitMap         :: Picture,
   ghostLocation       :: Location,
   ghostDirection      :: Direction,
   ghostNextDirection  :: NextDirection,
   ghostColor          :: GhostColor,
-  ghostEatable        :: Eatable,
-  ghostOutsideCage    :: GhostOutsideCage}
+  ghostOutsideCage    :: GhostOutsideCage
+}
 
 data GhostOutsideCage = InsideCage | OutsideCage
 data GhostColor       = Red | Pink | Yellow | Blue
@@ -66,12 +66,13 @@ data Level = Level {
   largeFood   :: LargeFood,
   playerSpawn :: PlayerSpawn,
   numGhosts   :: Int,
-  ghostsSpawn :: [GhostSpawn]
+  ghostsSpawn :: [GhostSpawn],
+  cageTimer   :: Float
 }
 
-type Maze       = [Location]
-type Cage       = [Location]
-type Food       = [Location]
-type LargeFood  = [Location]
-type PlayerSpawn = Location
-type GhostSpawn = Location
+type Maze         = [Location]
+type Cage         = [Location]
+type Food         = [Location]
+type LargeFood    = [Location]
+type PlayerSpawn  = Location
+type GhostSpawn   = Location

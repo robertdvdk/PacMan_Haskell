@@ -17,7 +17,7 @@ step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
       Start     -> do                       
                       highScores  <- readF
-                      return $ gstate { player = Player (playerSpawn (level gstate)) West West, highScores = highScores, timer = 0 }
+                      return $ gstate { player = (player gstate) { playerLocation = (0, 0), dyingTimer = 0 }, highScores = highScores }
       Playing   -> updateGameState gstate
       GameOver  -> do   
                       writeF gstate
@@ -31,28 +31,33 @@ input e gstate = return (inputKey e gstate)
 dyingAnimation :: GameState -> IO GameState
 dyingAnimation gstate = 
   do 
-    let gstate' = setTimer gstate
-    return gstate' {ghosts = initialGhosts1}
+    let gstate' = gstate { player = setTimer (player gstate) }
+    return gstate' -- { redGhost = (redGhost gstate) { ghostLocation = (0, 15), ghostOutsideCage = InsideCage } }
 
 -- | Increments the number of frames for the dying animation
-setTimer :: GameState -> GameState
-setTimer gstate = gstate {timer = (timer gstate + 1)}
+setTimer :: Player -> Player
+setTimer player = player { dyingTimer = (dyingTimer player + 1) }
 
 -- | Update player's direction, location, and ghosts' location
 updateGameState :: GameState -> IO GameState
 updateGameState gstate = 
   do 
-    let gstate' = movePlayer (gstate {player = playerChangeDirection (maze (level gstate)) (player gstate)})
+    let gstate' = movePlayer (gstate { player = playerChangeDirection (maze (level gstate)) (player gstate) })
     let gstate'' = eatFood gstate'
-    let gstate''' = flashCage gstate''
-    let gstate'''' = gstate''' {ghosts = checkGhostInCage (ghostCage (level gstate''')) (ghosts gstate''')}
+    let gstate''' = gstate'' { level = flashCage (level gstate'') }
+    let gstate'''' = gstate''' { ghosts = checkGhostInCage (ghostCage (level gstate''')) (ghosts gstate''') }
     movedGhosts <- moveGhost gstate'''' (ghosts gstate'''')
-    let gstate''''' = gstate'''' {ghosts = movedGhosts}
+    let gstate''''' = gstate'''' { ghosts = movedGhosts }
     if checkPlayerGhostCollision gstate''''' (ghosts gstate) 
       then (return gstate''''' { playState = GameOver }) 
       else if checkEverythingEaten gstate'''''
         then return gstate''''' { playState = Win }
         else return gstate'''''
+
+-- | Increments the number of frames for the cage; the cages flips between yellow and blue for 5 frames each
+flashCage :: Level -> Level
+flashCage level  | cageTimer level == 10  = level { cageTimer = 0 }
+                 | otherwise              = level { cageTimer = (cageTimer level + 1) }
                             
 -- | PURE PART STARTS HERE
 inputKey :: Event -> GameState -> GameState
@@ -74,7 +79,7 @@ changeGameState gstate = case playState gstate of
   Start     -> gstate { playState = Playing }
   Playing   -> gstate { playState = Paused }
   Paused    -> gstate { playState = Playing }
-  GameOver  -> gstate { playState = Start, score = 0, level = (level gstate) {food = food1, largeFood = largefood1 } }
+  GameOver  -> gstate { playState = Start, score = 0, level = (level gstate) { food = food1, largeFood = largefood1 } }
   Win       -> gstate { playState = Start, level = changeLevel gstate }
 
   -- | Changes the level if the player has won a level

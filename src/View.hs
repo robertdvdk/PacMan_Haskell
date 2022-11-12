@@ -14,54 +14,55 @@ view = return . viewPure
 viewPure :: GameState -> Picture 
 viewPure gstate = pictures ( 
   viewPlayState   (playState gstate)              ++
-  viewPlayer      gstate          (timer gstate)  ++
-  viewLevel       (level gstate)  (frames gstate) ++
+  viewPlayer       gstate                         ++
+  viewLevel       (level gstate)                  ++
   viewScore       (score gstate)                  ++
   viewHighScores  (highScores gstate)             ++
-  viewGhost       gstate (ghosts gstate)
+  viewGhosts       (ghosts gstate)
   )
 
 -- | View Level
-viewLevel :: Level -> Float -> [Picture]
-viewLevel level frames = 
-  viewMaze (maze level) (levelColor level)  ++
-  viewCage (ghostCage level) frames         ++
-  viewFood (food level)                     ++
+viewLevel :: Level -> [Picture]
+viewLevel level = 
+  viewMaze level                  ++
+  viewCage level                  ++
+  viewFood (food level)           ++
   viewLargeFood (largeFood level)
 
 -- | View individual components
-viewMaze :: Maze -> Color -> [Picture]
-viewMaze maze levelColor = [translate (x * 10) (y * 10) (color levelColor (rectangleSolid 10 10)) | (x, y) <- maze]
+viewMaze :: Level -> [Picture]
+viewMaze level = [translate (x * 10) (y * 10) (Color (levelColor level) (rectangleSolid 10 10)) | (x, y) <- maze level]
 
-viewCage :: Cage -> Float -> [Picture]
-viewCage cage f | f < 5     = [translate (x * 10) (y * 10) (color blue    (rectangleSolid 10 10)) | (x, y) <- cage]
-                | otherwise = [translate (x * 10) (y * 10) (color yellow  (rectangleSolid 10 10)) | (x, y) <- cage]
+viewCage :: Level -> [Picture]
+viewCage level  | cageTimer level < 5 = [translate (x * 10) (y * 10) (color (levelColor level)  (rectangleSolid 10 10)) | (x, y) <- ghostCage level]
+                | otherwise           = [translate (x * 10) (y * 10) (color yellow              (rectangleSolid 10 10)) | (x, y) <- ghostCage level]
 
-viewPlayer :: GameState -> Float -> [Picture]
-viewPlayer gstate t = case playState gstate of
-  GameOver  -> viewPlayerDying  gstate t
-  _         -> viewPlayerAlive gstate 
+viewPlayer :: GameState -> [Picture]
+viewPlayer gstate = case playState gstate of
+  GameOver  -> viewPlayerDying (player gstate)
+  _         -> viewPlayerAlive (player gstate)
 
-viewPlayerDying :: GameState -> Float -> [Picture]
-viewPlayerDying gstate t
+viewPlayerDying :: Player -> [Picture]
+viewPlayerDying player
   |             t < 4   = showPacManStage stage1
   | 4   <= t && t < 7   = showPacManStage stage2
   | 7   <= t && t < 10  = showPacManStage stage3
   | 10  <= t && t < 13  = showPacManStage stage4
   | otherwise           = showPacManStage stage5
-  where [stage1, stage2, stage3, stage4, stage5] = pacManStages gstate
+  where t = dyingTimer player
+        [stage1, stage2, stage3, stage4, stage5] = pacManBitMaps player
         showPacManStage stage = [translate (x * 10) (y * 10) (scale 0.03 0.03 stage)]
-            where (x, y) = playerLocation (player gstate)
+            where (x, y) = playerLocation player
                 
 
-viewPlayerAlive :: GameState -> [Picture]
-viewPlayerAlive gstate = let rotatePacMan angle (stage1:_)= [translate (x * 10) (y * 10) (scale 0.03 0.03 (rotate angle stage1))] 
-  in case (playerDirection (player gstate)) of
-  East  -> rotatePacMan 0   (pacManStages gstate)
-  South -> rotatePacMan 90  (pacManStages gstate)
-  West  -> rotatePacMan 180 (pacManStages gstate)
-  North -> rotatePacMan 270 (pacManStages gstate)
-  where (x, y) = playerLocation (player gstate)
+viewPlayerAlive :: Player -> [Picture]
+viewPlayerAlive player = let rotatePacMan angle (stage1:_)= [translate (x * 10) (y * 10) (scale 0.03 0.03 (rotate angle stage1))] 
+  in case (playerDirection player) of
+  East  -> rotatePacMan 0   (pacManBitMaps player)
+  South -> rotatePacMan 90  (pacManBitMaps player)
+  West  -> rotatePacMan 180 (pacManBitMaps player)
+  North -> rotatePacMan 270 (pacManBitMaps player)
+  where (x, y) = playerLocation player
 
 viewFood :: Food -> [Picture]
 viewFood food = [translate (x * 10) (y * 10) (color white (circleSolid 1 )) | (x, y) <- food]
@@ -69,16 +70,19 @@ viewFood food = [translate (x * 10) (y * 10) (color white (circleSolid 1 )) | (x
 viewLargeFood :: LargeFood -> [Picture]
 viewLargeFood largefood = [translate (x * 10) (y * 10) (color white (circleSolid 4)) | (x, y) <- largefood]
 
-viewGhost :: GameState -> [Ghost] -> [Picture]
--- viewGhost gstate = [translate (x * 10) (y * 10) (scale 0.045 0.045 (color red redGhost))] -- ff veranderd omdat ik de bitmap niet heb
-viewGhost gstate [] = []
-viewGhost gstate (g:gs) = case ghostColor g of
-  Red -> [translate (x * 10) (y * 10) (scale 1 1 (color red (circleSolid 5)))] ++ viewGhost gstate gs
-  Blue -> [translate (x * 10) (y * 10) (scale 1 1 (color blue (circleSolid 5)))] ++ viewGhost gstate gs
-  Yellow -> [translate (x * 10) (y * 10) (scale 1 1 (color yellow (circleSolid 5)))] ++ viewGhost gstate gs
-  Pink -> [translate (x * 10) (y * 10) (scale 1 1 (color magenta (circleSolid 5)))] ++ viewGhost gstate gs
-  where (x, y) = ghostLocation g
-        [redGhost, _, _, _] = ghostBitMaps gstate
+viewGhosts :: [Ghost] -> [Picture]
+viewGhosts [] = []
+viewGhosts (None:gs) = viewGhosts gs -- Schijnbaar kan je op deze manier pattern matchen
+viewGhosts (ghost:gs) = [translate (x * 10) (y * 10) (scale 0.045 0.045 (ghostBitMap ghost))] ++ viewGhosts gs 
+  where (x, y) = ghostLocation ghost
+  
+  -- case ghostColor g of
+  -- Red     -> [translate (x * 10) (y * 10) (scale 1 1 (color red     (circleSolid 5)))] ++ viewGhost gs
+  -- Blue    -> [translate (x * 10) (y * 10) (scale 1 1 (color blue    (circleSolid 5)))] ++ viewGhost gs
+  -- Yellow  -> [translate (x * 10) (y * 10) (scale 1 1 (color yellow  (circleSolid 5)))] ++ viewGhost gs
+  -- Pink    -> [translate (x * 10) (y * 10) (scale 1 1 (color magenta (circleSolid 5)))] ++ viewGhost gs
+  -- where (x, y) = ghostLocation g
+        -- [redGhost, blueGhost, yellowGhost, pinkGhost] = ghostBitMaps g
 
 viewScore :: Score -> [Picture]
 viewScore score = [translate (-250) (-240) (color white (scale 0.1 0.1 (text ("Score:" ++ (show score)))))]

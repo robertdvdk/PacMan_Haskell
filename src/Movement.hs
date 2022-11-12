@@ -69,14 +69,14 @@ ghostPickWeightedNextDirection level ghost player weightfactor =
 
 ghostGenerateWeightedNextDirections :: Level -> Ghost -> Player -> Int -> [Direction]
 ghostGenerateWeightedNextDirections level ghost player weightfactor 
-    | dx < 0 && dy < 0 = weightDir East (weightDir North xs (-dy*weightfactor)) (-dx*weightfactor)
-    | dx < 0 && dy > 0 = weightDir East (weightDir South xs (dy*weightfactor)) (-dx*weightfactor)
-    | dx > 0 && dy < 0 = weightDir West (weightDir North xs (-dy*weightfactor)) (dx*weightfactor)
-    | dx > 0 && dy > 0 = weightDir West (weightDir South xs (dy*weightfactor)) (dx*weightfactor)
-    | dx < 0 = weightDir East xs (-dx*weightfactor)
-    | dx > 0 = weightDir West xs (dx*weightfactor)
-    | dy < 0 = weightDir North xs (-dy*weightfactor)
-    | dy > 0 = weightDir South xs (dy*weightfactor)
+    | dx < 0 && dy < 0 = weightDir East (weightDir North xs (-dy* weightfactor)) (-dx * weightfactor)
+    | dx < 0 && dy > 0 = weightDir East (weightDir South xs (dy * weightfactor)) (-dx * weightfactor)
+    | dx > 0 && dy < 0 = weightDir West (weightDir North xs (-dy* weightfactor)) (dx  * weightfactor)
+    | dx > 0 && dy > 0 = weightDir West (weightDir South xs (dy * weightfactor)) (dx  * weightfactor)
+    | dx < 0 = weightDir East   xs (-dx * weightfactor)
+    | dx > 0 = weightDir West   xs (dx  * weightfactor)
+    | dy < 0 = weightDir North  xs (-dy * weightfactor)
+    | dy > 0 = weightDir South  xs (dy  * weightfactor)
     | otherwise = xs
   where (px, py) = playerLocation player
         (gx, gy) = ghostLocation ghost
@@ -85,11 +85,6 @@ ghostGenerateWeightedNextDirections level ghost player weightfactor
         weightDir :: Direction -> [Direction] -> Int -> [Direction]
         weightDir newDir dirs 0 = dirs
         weightDir newDir dirs weight = if newDir `elem` dirs then (newDir : (weightDir newDir dirs (weight - 1))) else dirs
-
--- | Increments the number of frames for the cage; the cages flips between yellow and blue for 5 frames each
-flashCage :: GameState -> GameState
-flashCage gstate | frames gstate == 10 = gstate {frames = 0}
-                 | otherwise = gstate {frames = (frames gstate + 1)}
 
 eatFood :: GameState -> GameState
 eatFood gstate | playerLocation (player gstate) `elem` food (level gstate) = gstate {score = (score gstate + 10), level = (removeFood (level gstate))}
@@ -106,16 +101,16 @@ playerAbleToChangeDirection maze player = not (wallInDirection maze (playerNextD
 
 -- | If Pac-Man can turn towards the input direction, then do so
 playerChangeDirection :: Maze -> Player -> Player
-playerChangeDirection maze player  | playerAbleToChangeDirection maze player = player { playerDirection = playerNextDirection player}  
+playerChangeDirection maze player  | playerAbleToChangeDirection maze player = player { playerDirection = playerNextDirection player }  
                                    | otherwise = player
 
 -- | If ghost can turn towards chosen direction, then do so
 ghostChangeDirection :: Level -> Ghost -> Direction -> Ghost
-ghostChangeDirection level ghost dir | ghostAbleToChangeDirection level ghost dir = ghost {ghostDirection = dir}
+ghostChangeDirection level ghost dir | ghostAbleToChangeDirection level ghost dir = ghost { ghostDirection = dir }
                                      | otherwise = ghost
 
 lockGhostOutsideCage :: Ghost -> Ghost
-lockGhostOutsideCage ghost = ghost {ghostOutsideCage = OutsideCage}
+lockGhostOutsideCage ghost = ghost { ghostOutsideCage = OutsideCage } 
 
 -- | Checks if the ghost can turn towards the given direction
 -- | If the ghost is still inside the cage, they may move through the cage wall. Otherwise, they may not.
