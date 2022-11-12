@@ -39,7 +39,7 @@ viewPlayerDying player
             where (x, y) = playerLocation player
                 
 viewPlayerAlive :: Player -> [Picture]
-viewPlayerAlive player = let rotatePacMan angle (stage1:_)= [translate (x * 10) (y * 10) (scale 0.03 0.03 (rotate angle stage1))] 
+viewPlayerAlive player = let rotatePacMan angle (stage1:_) = [translate (x * 10) (y * 10) (scale 0.03 0.03 (rotate angle stage1))] 
   in case (playerDirection player) of
   East  -> rotatePacMan 0   (pacManBitMaps player)
   South -> rotatePacMan 90  (pacManBitMaps player)

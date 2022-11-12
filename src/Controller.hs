@@ -89,7 +89,7 @@ changeGameState gstate = case playState gstate of
   Win       -> gstate { playState = Start, level = nextLevel (level gstate) (levels gstate) }
 
 resetLevel :: Level -> [Level] -> Level
-resetLevel level [level1, level2, level3] = level1 -- Moet zo gefikst worden dat ie de goede initialLevel haalt uit de lijst met levels.
+resetLevel level [level1, level2, level3] = level -- Moet zo gefikst worden dat ie de goede initialLevel haalt uit de lijst met levels.
 
 nextLevel :: Level -> [Level] -> Level            -- Zelfde maar dan het volgende level.
 nextLevel level [level1, level2, level3] = level3
