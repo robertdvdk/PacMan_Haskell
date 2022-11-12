@@ -17,7 +17,8 @@ step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
       Start     -> do                       
                       highScores  <- readF
-                      return $ gstate { player = (player gstate) { playerLocation = (0, 0), dyingTimer = 0 }, highScores = highScores }
+                      return $ gstate { player = (player gstate) { playerLocation = (0, 0), dyingTimer = 0 }, 
+                        highScores = highScores }
       Playing   -> updateGameState gstate
       GameOver  -> do   
                       writeF gstate
@@ -42,13 +43,13 @@ setTimer player = player { dyingTimer = (dyingTimer player + 1) }
 updateGameState :: GameState -> IO GameState
 updateGameState gstate = 
   do 
-    let gstate' = movePlayer (gstate { player = playerChangeDirection (maze (level gstate)) (player gstate) })
-    let gstate'' = eatFood gstate'
-    let gstate''' = gstate'' { level = flashCage (level gstate'') }
-    let gstate'''' = gstate''' { ghosts = checkGhostInCage (ghostCage (level gstate''')) (ghosts gstate''') }
-    movedGhosts <- moveGhost gstate'''' (ghosts gstate'''')
+    let gstate'     = movePlayer (gstate { player = playerChangeDirection (maze (level gstate)) (player gstate) })
+    let gstate''    = eatFood gstate'
+    let gstate'''   = gstate'' { level = flashCage (level gstate'') }
+    let gstate''''  = gstate''' { level = (level gstate) { ghosts = checkGhostInCage (ghostCage (level gstate''')) (ghosts (level gstate''')) } }
+    movedGhosts <- moveGhost gstate'''' (ghosts (level gstate''''))
     let gstate''''' = gstate'''' { ghosts = movedGhosts }
-    if checkPlayerGhostCollision gstate''''' (ghosts gstate) 
+    if checkPlayerGhostCollision gstate''''' (ghosts (level gstate)) 
       then (return gstate''''' { playState = GameOver }) 
       else if checkEverythingEaten gstate'''''
         then return gstate''''' { playState = Win }
@@ -67,8 +68,12 @@ inputKey (EventKey (Char c) Down _ _) gstate
     | c == 'a'    = changeDirection West
     | c == 'd'    = changeDirection East
     | c == 'p'    = changeGameState gstate
-    | c == 'g'    = gstate { playState = GameOver }                     -- TEST GAMEOVER
-    | c == 'h'    = gstate { highScores = [20, 20, 0, 20, 20] }         -- TEST HIGH SCORES
+    | c == 'g'    = gstate { playState = GameOver }                                   -- TEST GAMEOVER
+    | c == 't'    = gstate { playState = Win }                                        -- TEST WIN
+    | c == '2'    = gstate { levels = [initialLevel1, initialLevel2, initialLevel3] } -- Go to Level 1
+    | c == '2'    = gstate { levels = [initialLevel2, initialLevel3] }                -- Go to Level 2
+    | c == '3'    = gstate { levels = [initialLevel3] }                               -- Go to Level 3
+    | c == 'h'    = gstate { highScores = [0, 0, 0, 0, 0] }                           -- Reset HIGH SCORES
     where changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate)}
             where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate 
@@ -79,11 +84,5 @@ changeGameState gstate = case playState gstate of
   Start     -> gstate { playState = Playing }
   Playing   -> gstate { playState = Paused }
   Paused    -> gstate { playState = Playing }
-  GameOver  -> gstate { playState = Start, score = 0, level = (level gstate) { food = food1, largeFood = largefood1 } }
-  Win       -> gstate { playState = Start, level = changeLevel gstate }
-
-  -- | Changes the level if the player has won a level
-changeLevel :: GameState -> Level
-changeLevel gstate = case level gstate of
-  level1 -> level2 --- ERROR Pattern match is redundant AND WON'T CHANGE LEVEL2 IN LEVEL3.
-  level2 -> level3
+  GameOver  -> gstate { playState = Start, score = 0 }
+  Win       -> gstate { playState = Start }

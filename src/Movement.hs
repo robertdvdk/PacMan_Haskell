@@ -13,43 +13,35 @@ checkEverythingEaten gstate = False
 checkPlayerGhostCollision :: GameState -> [Ghost] -> Bool
 checkPlayerGhostCollision gstate [] = False
 checkPlayerGhostCollision gstate gs = True `elem` [checkPlayerGhostCollision' (player gstate) g | g <- gs]
-  where checkPlayerGhostCollision' player g = case g of 
-          None -> False
-          _ -> (checkPlayerGhostCollision'' (playerLocation player) (ghostLocation g)) || (checkPlayerGhostCollision'' (playerLocation (playerChangeLocation player)) (ghostLocation g))
+  where checkPlayerGhostCollision' player g  = 
+          (checkPlayerGhostCollision'' (playerLocation player) (ghostLocation g)) || (checkPlayerGhostCollision'' (playerLocation (playerChangeLocation player)) (ghostLocation g))
                 where  checkPlayerGhostCollision'' (x1, y1) (x2, y2) = (x1 == x2 && y1 == y2)
 
 -- | First check if the ghost is inside the cage. If it is, then it can move through the cage. 
 -- | If it is already outside the cage, it can't go back in. 
 moveGhost :: GameState -> [Ghost] -> IO [Ghost]
 moveGhost gstate [] = return []
-moveGhost gstate (g:gs) = do 
-  case g of
-    None -> return [None]
-    _ -> if noWall (ghostOutsideCage g) 
-          then case ghostOutsideCage g of
-                InsideCage -> do moverest <- moveGhost gstate gs
-                                 return ((ghostChangeLocation g) : moverest)
-                -- If the ghost is outside the cage and is at an intersection or T-junction, choose a random next direction
-                OutsideCage ->  if length [a | a <- [North, East, South, West], ghostAbleToChangeDirection gsLevel g a] > 2 
-                                  then do chosendir <- ghostPickWeightedNextDirection gsLevel g gsPlayer weight
-                                          moverest <- moveGhost gstate gs
-                                          return ((ghostChangeLocation (ghostChangeDirection gsLevel g chosendir)) : moverest)
-                                  -- If the ghost is not at an intersection, simply keep moving
-                                  else do moverest <- moveGhost gstate gs
-                                          return ((ghostChangeLocation g) : moverest)
-          -- If the ghost walks into a wall, choose a random next direction
-          else do chosendir <- ghostPickWeightedNextDirection gsLevel g gsPlayer weight
-                  moverest <- moveGhost gstate gs
-                  return ((ghostChangeDirection gsLevel g chosendir) : moverest)
+moveGhost gstate (g:gs) = 
+  if noWall (ghostOutsideCage g) 
+    then case ghostOutsideCage g of
+          InsideCage -> do  moverest <- moveGhost gstate gs
+                            return ((ghostChangeLocation g) : moverest)
+          -- If the ghost is outside the cage and is at an intersection or T-junction, choose a random next direction
+          OutsideCage ->  if length [a | a <- [North, East, South, West], ghostAbleToChangeDirection gsLevel g a] > 2 
+                            then do chosendir <- ghostPickWeightedNextDirection gsLevel g gsPlayer (difficulty g)
+                                    moverest <- moveGhost gstate gs
+                                    return ((ghostChangeLocation (ghostChangeDirection gsLevel g chosendir)) : moverest)
+                            -- If the ghost is not at an intersection, simply keep moving
+                            else do moverest <- moveGhost gstate gs
+                                    return ((ghostChangeLocation g) : moverest)
+    -- If the ghost walks into a wall, choose a random next direction
+    else do chosendir <- ghostPickWeightedNextDirection gsLevel g gsPlayer (difficulty g)
+            moverest <- moveGhost gstate gs
+            return ((ghostChangeDirection gsLevel g chosendir) : moverest)
   where noWall InsideCage = wallInDirection (ghostCage gsLevel) (ghostDirection g) (ghostLocation g) || (not (wallInDirection (maze gsLevel) (ghostDirection g) (ghostLocation g)))
         noWall OutsideCage = not (wallInDirection (maze gsLevel) (ghostDirection g) (ghostLocation g))
         gsLevel   = level gstate
         gsPlayer  = player gstate
-        weight = case ghostColor g of
-          Red -> 0
-          Pink -> 1
-          Yellow -> 3
-          Blue -> 10
 
 -- | Generates a random int between x and y
 getInt :: Int -> Int -> IO Int
@@ -144,18 +136,15 @@ entityNewLocation entity = case entityDirection entity of
 
 -- | Change location of player based on player's direction 
 playerChangeLocation :: Player -> Player
-playerChangeLocation player = player {playerLocation = entityNewLocation player}
+playerChangeLocation player = player { playerLocation = entityNewLocation player }
 
 -- | Change location of ghost based on ghost's direction
 ghostChangeLocation :: Ghost -> Ghost
-ghostChangeLocation ghost = ghost {ghostLocation = entityNewLocation ghost}
+ghostChangeLocation ghost = ghost { ghostLocation = entityNewLocation ghost }
 
 -- | Check if the ghost is passing through the cage
 checkGhostInCage :: Cage -> [Ghost] -> [Ghost]
 checkGhostInCage cage [] = []
-checkGhostInCage cage (g:gs) = case g of
-  None -> None : checkGhostInCage cage gs
-  _ -> if ghostLocation g `elem` cage 
-        then g {ghostOutsideCage = OutsideCage} : checkGhostInCage cage gs
-        else g : checkGhostInCage cage gs
+checkGhostInCage cage (g:gs)  | ghostLocation g `elem` cage = g {ghostOutsideCage = OutsideCage} : checkGhostInCage cage gs
+                              | otherwise                   = g : checkGhostInCage cage gs
   

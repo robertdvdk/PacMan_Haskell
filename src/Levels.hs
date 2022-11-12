@@ -6,7 +6,7 @@ import Model
 import Graphics.Gloss
 import Data.List
 
--- | Level and Initial State
+-- | Levels
 makeLevelRectangle :: (Location, Location) -> [Location]
 makeLevelRectangle ((x1, y1), (x2, y2)) = [(x, y) | x <- [x1..x2], y <- [y1, y2]] ++ [(x, y) | x <- [x1, x2], y <- [y1..y2]]
 
@@ -47,9 +47,6 @@ food1 = foldr delete (nub $ concatMap makeLevelRectangle
    ((1, -13),   (1, -11)),
    ((-1, -16),  (-1, -14))])
    largefood1
-
-playerspawn1 = (0, 0)
-ghostspawn11 = (0, 15)
 
 maze2 = concatMap makeLevelRectangle
   [((-23, -23), (23, 23)),
@@ -133,10 +130,6 @@ food2 = foldr delete (nub $ concatMap makeLevelRectangle
   ((-4, -14), (-4, -12)),
   ((-2, -14), (-2, -12))])
    largefood1
-
-playerspawn2 = (22, 22)
-ghostspawn21 = (-22, -22)
-ghostspawn22 = (-23, -23)
 
 maze3 = concatMap makeLevelRectangle
   [((-24, -10), (24, 10)),
@@ -233,26 +226,3 @@ food3 = foldr delete (nub $ concatMap makeLevelRectangle
   largefood3
 
 largefood3 = nub $ concatMap makeLevelRectangle [((-16, -4), (-16, -4)), ((23, 9), (23, 9)), ((23, -9), (23, -9)), ((19, 0), (19, 0))]
-
-playerspawn3 = (0, 0)
-ghostspawn31 = (0, 0)
-ghostspawn32 = (0, 0)
-ghostspawn33 = (0, 0)
-
-level1 :: Level
-level1 = Level blue   maze1 cage1 food1 largefood1 playerspawn1 1 [ghostspawn11] 0
-
-level2 :: Level
-level2 = Level green  maze2 cage2 food2 largefood2 playerspawn2 2 [ghostspawn21, ghostspawn22] 0
-
-level3 :: Level
-level3 = Level red    maze3 cage3 food3 largefood3 playerspawn3 3 [ghostspawn31, ghostspawn32, ghostspawn33] 0
-
--- initialGhosts1 :: [Ghost]
--- initialGhosts1 = [Ghost (0, 15) West East Red InsideCage]
-
--- initialGhosts2 :: [Ghost]
--- initialGhosts2 = [Ghost (-22, -20) West East Red InsideCage, Ghost (-21,  -21) West East Pink NotEatable InsideCage, Ghost (-22, -21) West West Yellow NotEatable InsideCage]
-
--- initialGhosts3 :: [Ghost]
--- initialGhosts3 = [Ghost (22,    3) West West Red InsideCage, Ghost (21,     2) West West Pink NotEatable InsideCage, Ghost (22, -2) West West Yellow NotEatable InsideCage]

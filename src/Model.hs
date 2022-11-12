@@ -9,10 +9,9 @@ import Data.List
 data GameState = GameState {
   playState   :: PlayState,
   player      :: Player,
-  level       :: Level,
+  levels      :: [Level],
   score       :: Score,
-  highScores  :: [Int],
-  ghosts      :: [Ghost]
+  highScores  :: [Int]
 }
 
 data PlayState  = Start | Playing | Paused | GameOver | Win
@@ -31,14 +30,33 @@ type Location       = (Float, Float)
 data Direction      = North | South | West | East deriving Eq
 type NextDirection  = Direction
 
+-- | The level model
+data Level = Level {
+  levelColor  :: Color,
+  maze        :: Maze,
+  ghostCage   :: Cage,
+  ghosts      :: [Ghost],
+  food        :: Food,
+  largeFood   :: LargeFood,
+  playerSpawn :: PlayerSpawn,
+  cageTimer   :: Float
+}
+
+type Maze         = [Location]
+type Cage         = [Location]
+type Food         = [Location]
+type LargeFood    = [Location]
+type PlayerSpawn  = Location
+type GhostSpawn   = Location
+
 -- | The Ghost Model
-data Ghost = None | Ghost {
+data Ghost = Ghost {
   ghostBitMap         :: Picture,
   ghostLocation       :: Location,
   ghostDirection      :: Direction,
   ghostNextDirection  :: NextDirection,
-  ghostColor          :: GhostColor,
-  ghostOutsideCage    :: GhostOutsideCage
+  ghostOutsideCage    :: GhostOutsideCage,
+  difficulty          :: Int
 }
 
 data GhostOutsideCage = InsideCage | OutsideCage
@@ -56,23 +74,3 @@ instance Entity Ghost where
 instance Entity Player where
   entityLocation  = playerLocation
   entityDirection = playerDirection
-
--- | The level model
-data Level = Level {
-  levelColor  :: Color,
-  maze        :: Maze,
-  ghostCage   :: Cage,
-  food        :: Food,
-  largeFood   :: LargeFood,
-  playerSpawn :: PlayerSpawn,
-  numGhosts   :: Int,
-  ghostsSpawn :: [GhostSpawn],
-  cageTimer   :: Float
-}
-
-type Maze         = [Location]
-type Cage         = [Location]
-type Food         = [Location]
-type LargeFood    = [Location]
-type PlayerSpawn  = Location
-type GhostSpawn   = Location
