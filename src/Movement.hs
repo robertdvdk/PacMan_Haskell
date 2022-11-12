@@ -28,19 +28,18 @@ moveGhost gstate (g:gs) =
                             return ((ghostChangeLocation g) : moverest)
           -- If the ghost is outside the cage and is at an intersection or T-junction, choose a random next direction
           OutsideCage ->  if length [a | a <- [North, East, South, West], ghostAbleToChangeDirection (level gstate) g a] > 2 
-                            then do chosendir <- ghostPickWeightedNextDirection (level gstate) g player' (difficulty g)
+                            then do chosendir <- ghostPickWeightedNextDirection (level gstate) g (player gstate) (difficulty g)
                                     moverest  <- moveGhost gstate gs
                                     return ((ghostChangeLocation (ghostChangeDirection (level gstate) g chosendir)) : moverest)
                             -- If the ghost is not at an intersection, simply keep moving
                             else do moverest <- moveGhost gstate gs
                                     return ((ghostChangeLocation g) : moverest)
     -- If the ghost walks into a wall, choose a random next direction
-    else do chosendir <- ghostPickWeightedNextDirection (level gstate) g player' (difficulty g)
+    else do chosendir <- ghostPickWeightedNextDirection (level gstate) g (player gstate) (difficulty g)
             moverest  <- moveGhost gstate gs
             return ((ghostChangeDirection (level gstate) g chosendir) : moverest)
   where noWall InsideCage   = wallInDirection (ghostCage (level gstate)) (ghostDirection g) (ghostLocation g) || (not (wallInDirection (maze (level gstate)) (ghostDirection g) (ghostLocation g)))
         noWall OutsideCage  = not (wallInDirection (maze (level gstate)) (ghostDirection g) (ghostLocation g))
-        player'             = player gstate
 
 -- | Generates a random int between x and y
 getInt :: Int -> Int -> IO Int
@@ -125,10 +124,10 @@ wallInDirection maze dir (x, y) = case dir of
 -- | Gives back the new location of an entity, given its current location and the direction it's heading
 entityNewLocation :: Entity a => a -> Location
 entityNewLocation entity = case entityDirection entity of
-  West  -> (x-1, y)
-  East  -> (x+1, y)
-  North -> (x, y+1)
-  South -> (x, y-1)
+  West  -> (x - 1, y)
+  East  -> (x + 1, y)
+  North -> (x, y + 1)
+  South -> (x, y - 1)
   where (x, y) = entityLocation entity
 
 -- | Change location of player based on player's direction 
