@@ -14,10 +14,10 @@ viewPure :: GameState -> Picture
 viewPure gstate = pictures ( 
   viewPlayState   (playState gstate)              ++
   viewPlayer       gstate                         ++
-  viewLevel       (levels gstate)          ++
+  viewLevel       (level gstate)                  ++
   viewScore       (score gstate)                  ++
   viewHighScores  (highScores gstate)             ++
-  viewGhosts      (ghosts (levels gstate)))
+  viewGhosts      (ghosts (level gstate))
   )
 
 -- | View Pac-Man 
@@ -49,7 +49,7 @@ viewPlayerAlive player = let rotatePacMan angle (stage1:_)= [translate (x * 10) 
 
 -- | View Level
 viewLevel :: Level -> [Picture]
-viewLevel (level:levels) = 
+viewLevel level = 
   viewMaze level                  ++
   viewCage level                  ++
   viewFood (food level)           ++
@@ -57,10 +57,10 @@ viewLevel (level:levels) =
 
 -- | View individual level components
 viewMaze :: Level -> [Picture]
-viewMaze (level:levels) = [translate (x * 10) (y * 10) (Color (levelColor level) (rectangleSolid 10 10)) | (x, y) <- maze level]
+viewMaze level = [translate (x * 10) (y * 10) (Color (levelColor level) (rectangleSolid 10 10)) | (x, y) <- maze level]
 
 viewCage :: Level -> [Picture]
-viewCage (level:levels)  
+viewCage level  
   | cageTimer level < 5 = [translate (x * 10) (y * 10) (color (levelColor level)  (rectangleSolid 10 10)) | (x, y) <- ghostCage level]
   | otherwise           = [translate (x * 10) (y * 10) (color yellow              (rectangleSolid 10 10)) | (x, y) <- ghostCage level]
 
@@ -73,7 +73,6 @@ viewLargeFood largefood = [translate (x * 10) (y * 10) (color white (circleSolid
 -- | View Ghosts
 viewGhosts :: [Ghost] -> [Picture]
 viewGhosts [] = []
-viewGhosts (None:gs) = viewGhosts gs -- Schijnbaar kan je op deze manier pattern matchen
 viewGhosts (ghost:gs) = [translate (x * 10) (y * 10) (scale 0.045 0.045 (ghostBitMap ghost))] ++ viewGhosts gs 
   where (x, y) = ghostLocation ghost
 

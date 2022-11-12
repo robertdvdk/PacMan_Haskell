@@ -9,6 +9,7 @@ import Data.List
 data GameState = GameState {
   playState   :: PlayState,
   player      :: Player,
+  level       :: Level,
   levels      :: [Level],
   score       :: Score,
   highScores  :: [Int]

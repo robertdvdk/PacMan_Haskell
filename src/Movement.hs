@@ -27,21 +27,20 @@ moveGhost gstate (g:gs) =
           InsideCage -> do  moverest <- moveGhost gstate gs
                             return ((ghostChangeLocation g) : moverest)
           -- If the ghost is outside the cage and is at an intersection or T-junction, choose a random next direction
-          OutsideCage ->  if length [a | a <- [North, East, South, West], ghostAbleToChangeDirection gsLevel g a] > 2 
-                            then do chosendir <- ghostPickWeightedNextDirection gsLevel g gsPlayer (difficulty g)
-                                    moverest <- moveGhost gstate gs
-                                    return ((ghostChangeLocation (ghostChangeDirection gsLevel g chosendir)) : moverest)
+          OutsideCage ->  if length [a | a <- [North, East, South, West], ghostAbleToChangeDirection (level gstate) g a] > 2 
+                            then do chosendir <- ghostPickWeightedNextDirection (level gstate) g player' (difficulty g)
+                                    moverest  <- moveGhost gstate gs
+                                    return ((ghostChangeLocation (ghostChangeDirection (level gstate) g chosendir)) : moverest)
                             -- If the ghost is not at an intersection, simply keep moving
                             else do moverest <- moveGhost gstate gs
                                     return ((ghostChangeLocation g) : moverest)
     -- If the ghost walks into a wall, choose a random next direction
-    else do chosendir <- ghostPickWeightedNextDirection gsLevel g gsPlayer (difficulty g)
-            moverest <- moveGhost gstate gs
-            return ((ghostChangeDirection gsLevel g chosendir) : moverest)
-  where noWall InsideCage = wallInDirection (ghostCage gsLevel) (ghostDirection g) (ghostLocation g) || (not (wallInDirection (maze gsLevel) (ghostDirection g) (ghostLocation g)))
-        noWall OutsideCage = not (wallInDirection (maze gsLevel) (ghostDirection g) (ghostLocation g))
-        gsLevel   = level gstate
-        gsPlayer  = player gstate
+    else do chosendir <- ghostPickWeightedNextDirection (level gstate) g player' (difficulty g)
+            moverest  <- moveGhost gstate gs
+            return ((ghostChangeDirection (level gstate) g chosendir) : moverest)
+  where noWall InsideCage   = wallInDirection (ghostCage (level gstate)) (ghostDirection g) (ghostLocation g) || (not (wallInDirection (maze (level gstate)) (ghostDirection g) (ghostLocation g)))
+        noWall OutsideCage  = not (wallInDirection (maze (level gstate)) (ghostDirection g) (ghostLocation g))
+        player'             = player gstate
 
 -- | Generates a random int between x and y
 getInt :: Int -> Int -> IO Int
@@ -61,15 +60,15 @@ ghostPickWeightedNextDirection level ghost player weightfactor =
 
 ghostGenerateWeightedNextDirections :: Level -> Ghost -> Player -> Int -> [Direction]
 ghostGenerateWeightedNextDirections level ghost player weightfactor 
-    | dx < 0 && dy < 0 = weightDir East (weightDir North xs (-dy* weightfactor)) (-dx * weightfactor)
-    | dx < 0 && dy > 0 = weightDir East (weightDir South xs (dy * weightfactor)) (-dx * weightfactor)
-    | dx > 0 && dy < 0 = weightDir West (weightDir North xs (-dy* weightfactor)) (dx  * weightfactor)
-    | dx > 0 && dy > 0 = weightDir West (weightDir South xs (dy * weightfactor)) (dx  * weightfactor)
-    | dx < 0 = weightDir East   xs (-dx * weightfactor)
-    | dx > 0 = weightDir West   xs (dx  * weightfactor)
-    | dy < 0 = weightDir North  xs (-dy * weightfactor)
-    | dy > 0 = weightDir South  xs (dy  * weightfactor)
-    | otherwise = xs
+    | dx < 0 && dy < 0  = weightDir East (weightDir North xs (-dy* weightfactor)) (-dx * weightfactor)
+    | dx < 0 && dy > 0  = weightDir East (weightDir South xs (dy * weightfactor)) (-dx * weightfactor)
+    | dx > 0 && dy < 0  = weightDir West (weightDir North xs (-dy* weightfactor)) (dx  * weightfactor)
+    | dx > 0 && dy > 0  = weightDir West (weightDir South xs (dy * weightfactor)) (dx  * weightfactor)
+    | dx < 0            = weightDir East   xs (-dx * weightfactor)
+    | dx > 0            = weightDir West   xs (dx  * weightfactor)
+    | dy < 0            = weightDir North  xs (-dy * weightfactor)
+    | dy > 0            = weightDir South  xs (dy  * weightfactor)
+    | otherwise         = xs
   where (px, py) = playerLocation player
         (gx, gy) = ghostLocation ghost
         (dx, dy) = (round (gx - px), round (gy - py))
@@ -79,13 +78,11 @@ ghostGenerateWeightedNextDirections level ghost player weightfactor
         weightDir newDir dirs weight = if newDir `elem` dirs then (newDir : (weightDir newDir dirs (weight - 1))) else dirs
 
 eatFood :: GameState -> GameState
-eatFood gstate | playerLocation (player gstate) `elem` food (level gstate) = gstate {score = (score gstate + 10), level = (removeFood (level gstate))}
-               | playerLocation (player gstate) `elem` largeFood (level gstate) = gstate {score = (score gstate + 50), level = (removeLargeFood (level gstate))}
+eatFood gstate | playerLocation (player gstate) `elem` food       (level gstate) = gstate { score = (score gstate + 10), level = (removeFood      (level gstate)) }
+               | playerLocation (player gstate) `elem` largeFood  (level gstate) = gstate { score = (score gstate + 50), level = (removeLargeFood (level gstate)) }
                | otherwise = gstate
-  where removeFood :: Level -> Level
-        removeFood level = level {food = delete (playerLocation (player gstate)) (food level)}
-        removeLargeFood :: Level -> Level
-        removeLargeFood level = level {largeFood = delete (playerLocation (player gstate)) (largeFood level)}
+  where removeFood      level = level { food       = delete (playerLocation (player gstate)) (food      level) }
+        removeLargeFood level = level { largeFood  = delete (playerLocation (player gstate)) (largeFood level) }
 
 -- | Checks if Pac-Man can make a turn
 playerAbleToChangeDirection :: Maze -> Player -> Bool 
@@ -108,11 +105,11 @@ lockGhostOutsideCage ghost = ghost { ghostOutsideCage = OutsideCage }
 -- | If the ghost is still inside the cage, they may move through the cage wall. Otherwise, they may not.
 ghostAbleToChangeDirection :: Level -> Ghost -> Direction -> Bool
 ghostAbleToChangeDirection level ghost dir = case ghostOutsideCage ghost of 
-  InsideCage -> wallInDirection (ghostCage level) dir (ghostLocation ghost) || not (wallInDirection (maze level) dir (ghostLocation ghost))
+  InsideCage  -> wallInDirection (ghostCage level) dir (ghostLocation ghost) || not (wallInDirection (maze level) dir (ghostLocation ghost))
   OutsideCage -> not (wallInDirection (maze level) dir (ghostLocation ghost))
 
 movePlayer :: GameState -> GameState  
-movePlayer gstate | noWall = gstate { player = playerChangeLocation (player gstate)}
+movePlayer gstate | noWall = gstate { player = playerChangeLocation (player gstate) }
                   | otherwise = gstate
   where noWall = not (wallInDirection (maze (level gstate)) (playerDirection (player gstate)) (playerLocation (player gstate)))
 
