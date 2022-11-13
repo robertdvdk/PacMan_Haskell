@@ -6,11 +6,6 @@ import Model
 import System.Random
 import Data.List
 
-checkEverythingEaten :: GameState -> GameState -- Needs to be made
-checkEverythingEaten gstate = if checkEverythingEaten' gstate then gstate {playState = Win} else gstate where
-  checkEverythingEaten' gstate = length (food (level gstate)) == 0 && length (largeFood (level gstate)) == 0
-
-
 -- | First check if the ghost is inside the cage. If it is, then it can move through the cage. 
 -- | If it is already outside the cage, it can't go back in. 
 moveGhost :: GameState -> [Ghost] -> IO [Ghost]
@@ -39,7 +34,7 @@ moveGhost gstate (g:gs) =
 getInt :: Int -> Int -> IO Int
 getInt x y = getStdRandom (randomR (x, y))
 
--- | Picks a random direction for a ghost
+-- | Picks a weighted random direction for a ghost
 ghostPickWeightedNextDirection :: Level -> Ghost -> Player -> Int -> IO Direction
 ghostPickWeightedNextDirection level ghost player weightfactor = 
     do  dir <- getInt 0 (length xs - 1)
@@ -48,6 +43,8 @@ ghostPickWeightedNextDirection level ghost player weightfactor =
                     (Eatable, _)     -> ghostGenerateWeightedNextDirections level ghost player 0
                     (NotEatable, _)  -> ghostGenerateWeightedNextDirections level ghost player weightfactor
 
+-- | Generate the ghost's next direction based on the direction in which the player is, relative to the ghost.
+-- | A weight factor of 0 corresponds to unweighted, random direction picking.
 ghostGenerateWeightedNextDirections :: Level -> Ghost -> Player -> Int -> [Direction]
 ghostGenerateWeightedNextDirections level ghost player weightfactor 
     | dx < 0 && dy < 0  = weightDir East (weightDir North xs (-dy* weightfactor)) (-dx * weightfactor)
@@ -67,6 +64,8 @@ ghostGenerateWeightedNextDirections level ghost player weightfactor
         weightDir newDir dirs 0 = dirs
         weightDir newDir dirs weight = if newDir `elem` dirs then (newDir : (weightDir newDir dirs (weight - 1))) else dirs
 
+-- | Check if the current player location is in the list of food, and if so, add to the score and remove the food from the list. Also make the ghosts eatable if the player
+-- | eats one of the large dots.
 eatFood :: GameState -> GameState
 eatFood gstate | playerLocation (player gstate) `elem` food       (level gstate) = gstate { score = (score gstate + 10), level = (removeFood      (level gstate)) }
                | playerLocation (player gstate) `elem` largeFood  (level gstate) = gstate { score = (score gstate + 50), level = eatableghosts ((removeLargeFood (level gstate)))}

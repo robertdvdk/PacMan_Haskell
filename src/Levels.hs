@@ -228,6 +228,7 @@ food3 = foldr delete (nub $ concatMap makeLevelRectangle
 
 largefood3 = nub $ concatMap makeLevelRectangle [((-16, -4), (-16, -4)), ((23, 9), (23, 9)), ((23, -9), (23, -9)), ((19, 0), (19, 0))]
 
+-- | Manually set all spawn locations
 playerSpawn1 = (0, 0) :: (Float, Float)
 ghostsSpawn1 = [(0, 15), (0, 16)] :: [(Float, Float)]
 
