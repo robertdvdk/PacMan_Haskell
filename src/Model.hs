@@ -12,10 +12,11 @@ data GameState = GameState {
   level       :: Level,
   levels      :: [Level],
   score       :: Score,
-  highScores  :: [Int]
+  highScores  :: [Int],
+  levelCounter :: Int
 }
 
-data PlayState  = Start | Playing | Paused | GameOver | Win
+data PlayState  = Start | Playing | Paused | GameOver | Win | Won | WonEntireGame
 type Score      = Int
 
 -- | The Player Model
@@ -24,9 +25,10 @@ data Player = Player {
   playerLocation      :: Location,
   playerDirection     :: Direction,
   playerNextDirection :: NextDirection,
-  dyingTimer          :: Float
+  dyingTimer          :: Float,
+  playerLives         :: Lives
 }
-
+type Lives          = Int
 type Location       = (Float, Float)
 data Direction      = North | South | West | East deriving Eq
 type NextDirection  = Direction
@@ -40,6 +42,7 @@ data Level = Level {
   food        :: Food,
   largeFood   :: LargeFood,
   playerSpawn :: PlayerSpawn,
+  ghostsSpawn :: [GhostSpawn],
   cageTimer   :: Float
 }
 
@@ -55,9 +58,9 @@ data Ghost = Ghost {
   ghostBitMap         :: Picture,
   ghostLocation       :: Location,
   ghostDirection      :: Direction,
-  ghostNextDirection  :: NextDirection,
   ghostOutsideCage    :: GhostOutsideCage,
-  difficulty          :: Int
+  difficulty          :: Int,
+  ghostIndex          :: Int
 }
 
 data GhostOutsideCage = InsideCage | OutsideCage

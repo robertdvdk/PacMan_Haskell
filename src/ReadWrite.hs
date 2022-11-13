@@ -4,13 +4,18 @@ module ReadWrite where
 
 import Model
 import Data.List
+import System.Directory
 
-filePathJurre = "C:/Users/Jurre Luijten/Documents/Master/Functioneel Programmeren/Game/High Scores.txt"
-filePathRobert = "/Users/robertvdklis/Documents/code/Courses/functioneel-programmeren/project/ScorePacMan.txt"
+filePath = "ScorePacMan.txt"
+
+
+createFile = do fileExists <- doesFileExist filePath
+                if fileExists then return () else writeFile filePath "0\n0\n0\n0\n0"
 
 readF :: IO [Int]
-readF = do  --make highscores a list of strings and give that to high scores then alter view
-            content <- readFile filePathJurre
+readF = do
+        --make highscores a list of strings and give that to high scores then alter view
+            content <- readFile filePath
             return (map read (lines content))
 
 updateHighScore :: GameState -> [Int]
@@ -22,5 +27,5 @@ updateHighScore gstate  | score gstate > minimum scores = changeElement (score g
                                             | otherwise = x     : (changeElement score el xs)
 
 writeF :: GameState -> IO ()
-writeF gstate = writeFile filePathJurre (unlines (map show (sort (updateHighScore gstate))))
+writeF gstate = writeFile filePath (unlines (map show (sort (updateHighScore gstate))))
 

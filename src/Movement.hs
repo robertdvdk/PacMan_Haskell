@@ -6,16 +6,10 @@ import Model
 import System.Random
 import Data.List
 
-checkEverythingEaten :: GameState -> Bool -- Needs to be made
-checkEverythingEaten gstate = False
+checkEverythingEaten :: GameState -> GameState -- Needs to be made
+checkEverythingEaten gstate = if checkEverythingEaten' gstate then gstate {playState = Win} else gstate where
+  checkEverythingEaten' gstate = length (food (level gstate)) == 0 && length (largeFood (level gstate)) == 0
 
--- | Check if a player either collided with a ghost this frame, or will collide in the next frame. If so, it's game over.
-checkPlayerGhostCollision :: GameState -> [Ghost] -> Bool
-checkPlayerGhostCollision gstate [] = False
-checkPlayerGhostCollision gstate gs = True `elem` [checkPlayerGhostCollision' (player gstate) g | g <- gs]
-  where checkPlayerGhostCollision' player g  = 
-          (checkPlayerGhostCollision'' (playerLocation player) (ghostLocation g)) || (checkPlayerGhostCollision'' (playerLocation (playerChangeLocation player)) (ghostLocation g))
-                where  checkPlayerGhostCollision'' (x1, y1) (x2, y2) = (x1 == x2 && y1 == y2)
 
 -- | First check if the ghost is inside the cage. If it is, then it can move through the cage. 
 -- | If it is already outside the cage, it can't go back in. 
@@ -143,4 +137,3 @@ checkGhostInCage :: Cage -> [Ghost] -> [Ghost]
 checkGhostInCage cage [] = []
 checkGhostInCage cage (g:gs)  | ghostLocation g `elem` cage = g {ghostOutsideCage = OutsideCage} : checkGhostInCage cage gs
                               | otherwise                   = g : checkGhostInCage cage gs
-  

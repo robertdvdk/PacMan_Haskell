@@ -16,14 +16,32 @@ import Control.Monad.State
 step :: Float -> GameState -> IO GameState
 step secs gstate = case playState gstate of
       Start     -> do                       
-                      highScores  <- readF
-                      return $ gstate { level = resetLevel (level gstate) (levels gstate), 
-                        player = (player gstate) { dyingTimer = 0 }, highScores = highScores }
+                      scores  <- readF
+                      return $ resetLevel gstate {highScores = scores}-- { level = resetLevel (level gstate) (levels gstate), player = (player gstate) { dyingTimer = 0 }, highScores = highScores }
       Playing   -> updateGameState gstate
       GameOver  -> do   
                       writeF gstate
                       dyingAnimation gstate
-      _         -> return $ gstate 
+      Win       -> do if levelCounter gstate == 3 then return $ gstate {playState = WonEntireGame} else return $ gstate -- {level = nextLevel (level gstate) (levels gstate), player = (player gstate) {dyingTimer = 0}, playState = Playing}
+      Won       -> do return $ (nextLevel gstate) {playState = Start}
+      _         -> do return gstate
+
+
+-- | Check if a player either collided with a ghost this frame, or will collide in the next frame. If so, it's game over.
+checkPlayerGhostCollision :: GameState -> [Ghost] -> GameState
+checkPlayerGhostCollision gstate gs = if checkPlayerGhostCollision' gstate gs then (decrementLives gstate) else gstate where
+  checkPlayerGhostCollision' gstate [] = False
+  checkPlayerGhostCollision' gstate gs = True `elem` [checkPlayerGhostCollision'' (player gstate) g | g <- gs]
+  checkPlayerGhostCollision'' player g  = 
+          (sameLocation (playerLocation player) (ghostLocation g)) || (sameLocation (playerLocation (playerChangeLocation player)) (ghostLocation g))
+                where  sameLocation (x1, y1) (x2, y2) = (x1 == x2 && y1 == y2)
+
+decrementLives :: GameState -> GameState
+decrementLives gstate = case playerLives (player gstate) of
+  1 -> gstate {playState = GameOver}
+  _ -> gstate {player = dec (player gstate), playState = Start}
+  where
+    dec player = player {playerLives = playerLives player - 1}
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
@@ -33,7 +51,13 @@ dyingAnimation :: GameState -> IO GameState
 dyingAnimation gstate = 
   do 
     let gstate' = gstate { player = setTimer (player gstate) }
-    return gstate' -- { redGhost = (redGhost gstate) { ghostLocation = (0, 15), ghostOutsideCage = InsideCage } }
+    let gstate'' = gstate' { level = (level gstate') { ghosts = resetGhosts (ghostsSpawn (level gstate')) (ghosts (level gstate'))}}
+    return gstate''
+
+resetGhosts :: [GhostSpawn] -> [Ghost] -> [Ghost]
+resetGhosts _ [] = []
+resetGhosts [] _ = []
+resetGhosts (s:ss) (g:gs) = g {ghostLocation = s} : resetGhosts ss gs
 
 -- | Increments the number of frames for the dying animation
 setTimer :: Player -> Player
@@ -46,21 +70,20 @@ updateGameState gstate =
     let gstate'     = movePlayer (gstate { player = playerChangeDirection (maze (level gstate)) (player gstate) })
     let gstate''    = eatFood gstate'
     let gstate'''   = gstate''  { level = flashCage (level gstate'') }
-    let gstate''''  = gstate''' { level = (level gstate) { ghosts = checkGhostInCage (ghostCage (level gstate''')) (ghosts (level gstate''')) } }
+    let gstate''''  = gstate''' { level = (level gstate''') { ghosts = checkGhostInCage (ghostCage (level gstate''')) (ghosts (level gstate''')) } }
     movedGhosts <- moveGhost gstate'''' (ghosts (level gstate''''))
-    let gstate''''' = gstate'''' { level = (level gstate) { ghosts = movedGhosts } }
-    if checkPlayerGhostCollision gstate''''' (ghosts (level gstate))
-      then (return gstate''''' { playState = GameOver }) 
-      else if checkEverythingEaten gstate'''''
-            then return gstate''''' { playState = Win }
-            else return gstate'''''
+    let gstate''''' = gstate'''' { level = (level gstate'''') { ghosts = movedGhosts } }
+    let gstate'''''' = checkPlayerGhostCollision gstate''''' (ghosts (level gstate'''''))
+    let gstate'''''''   = checkEverythingEaten gstate''''''
+    return gstate'''''''
 
+
+-- | PURE PART STARTS HERE
 -- | Increments the number of frames for the cage; the cages flips between yellow and blue for 5 frames each
 flashCage :: Level -> Level
-flashCage level | cageTimer level == 10  = level { cageTimer = 0 }
+flashCage level | cageTimer level == 10  = level { cageTimer = 0}
                 | otherwise              = level { cageTimer = (cageTimer level + 1) }
                             
--- | PURE PART STARTS HERE
 inputKey :: Event -> GameState -> GameState
 inputKey (EventKey (Char c) Down _ _) gstate
     | c == 'w'    = changeDirection North
@@ -70,9 +93,9 @@ inputKey (EventKey (Char c) Down _ _) gstate
     | c == 'p'    = changeGameState gstate
     | c == 'g'    = gstate { playState = GameOver }                                   -- TEST GAMEOVER
     | c == 't'    = gstate { playState = Win }                                        -- TEST WIN
-    | c == '1'    = gstate { level = level1 }                                         -- Go to level 1
-    | c == '2'    = gstate { level = level2 }                                         -- Go to level 2
-    | c == '3'    = gstate { level = level3 }                                         -- Go to level 3
+    | c == '1'    = initializeLevel gstate level1                                     -- Go to level 1
+    | c == '2'    = initializeLevel gstate level2                                         -- Go to level 2
+    | c == '3'    = initializeLevel gstate level3                                         -- Go to level 3
     | c == 'h'    = gstate { highScores = [0, 0, 0, 0, 0] }                           -- Reset HIGH SCORES
     where   [level1, level2, level3] = levels gstate
             changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate)}
@@ -85,11 +108,26 @@ changeGameState gstate = case playState gstate of
   Start     -> gstate { playState = Playing }
   Playing   -> gstate { playState = Paused }
   Paused    -> gstate { playState = Playing }
-  GameOver  -> gstate { playState = Start, score = 0 }
-  Win       -> gstate { playState = Start, level = nextLevel (level gstate) (levels gstate) }
+  GameOver  -> gstate { playState = Start, score = 0}
+  Win       -> gstate { playState = Won}
+  WonEntireGame -> gstate {playState = Won}
 
-resetLevel :: Level -> [Level] -> Level
-resetLevel level [level1, level2, level3] = level -- Moet zo gefikst worden dat ie de goede initialLevel haalt uit de lijst met levels.
+resetLevel :: GameState -> GameState
+resetLevel gstate = case levelCounter gstate of
+  1 -> initializeLevel gstate level1
+  2 -> initializeLevel gstate level2
+  3 -> initializeLevel gstate level3
+  where [level1, level2, level3] = levels gstate
 
-nextLevel :: Level -> [Level] -> Level            -- Zelfde maar dan het volgende level.
-nextLevel level [level1, level2, level3] = level3
+nextLevel :: GameState -> GameState
+nextLevel gstate = case levelCounter gstate of 
+  1 -> (initializeLevel gstate level2) {levelCounter = 2}
+  2 -> (initializeLevel gstate level3) {levelCounter = 3}
+  3 -> (initializeLevel gstate level1) {levelCounter = 1}
+  where [level1, level2, level3] = levels gstate
+
+initializeLevel :: GameState -> Level -> GameState
+initializeLevel gstate newlevel = gstate {player = newplayer, level = initlevel}
+  where
+    newplayer = (player gstate) {playerLocation = playerSpawn newlevel, playerDirection = West, dyingTimer = 0}
+    initlevel = newlevel {ghosts = resetGhosts (ghostsSpawn newlevel) (ghosts newlevel)}

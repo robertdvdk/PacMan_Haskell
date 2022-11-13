@@ -32,6 +32,7 @@ largefood1 = nub $ concatMap makeLevelRectangle [((-17, -17), (-17, -17)), ((-17
 -- | With foldr, the small dots in corners that contain both a large dot and a small dot are removed.
 food1 = foldr delete (nub $ concatMap makeLevelRectangle
   [((-17, -17),  (-17, 17)),
+   ((-6, 12), (6, 12)),
    ((-17, 17),  (-7, 17)),
    ((7, 17),    (17, 17)),
    ((-17, -17),   (17, -17)),
@@ -129,7 +130,7 @@ food2 = foldr delete (nub $ concatMap makeLevelRectangle
   ((-6, -14), (-6, -12)),
   ((-4, -14), (-4, -12)),
   ((-2, -14), (-2, -12))])
-   largefood1
+   largefood2
 
 maze3 = concatMap makeLevelRectangle
   [((-24, -10), (24, 10)),
@@ -174,7 +175,7 @@ maze3 = concatMap makeLevelRectangle
   ((15, -8), (16, -6))
   ]
 
-cage3 = makeLevelRectangle ((20, -2), (20, 2))
+cage3 = makeLevelRectangle ((20, -4), (20, 0))
 
 food3 = foldr delete (nub $ concatMap makeLevelRectangle
   [((-23, -9), (-3, -9)),
@@ -226,3 +227,12 @@ food3 = foldr delete (nub $ concatMap makeLevelRectangle
   largefood3
 
 largefood3 = nub $ concatMap makeLevelRectangle [((-16, -4), (-16, -4)), ((23, 9), (23, 9)), ((23, -9), (23, -9)), ((19, 0), (19, 0))]
+
+playerSpawn1 = (0, 0) :: (Float, Float)
+ghostsSpawn1 = [(0, 15), (0, 16)] :: [(Float, Float)]
+
+playerSpawn2 = (22.0, 22.0) :: (Float, Float)
+ghostsSpawn2 = [(-22.0, -20.0), (-22.0, -21.0), (-20.0, -20.0)] :: [(Float, Float)]
+
+playerSpawn3 = (0.0, 0.0) :: (Float, Float)
+ghostsSpawn3 = [(22.0, 3.0), (21.0, 2.0), (22.0, -2.0), (23, 3.0)] :: [(Float, Float)]

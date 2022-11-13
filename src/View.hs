@@ -17,7 +17,8 @@ viewPure gstate = pictures (
   viewLevel       (level gstate)                  ++
   viewScore       (score gstate)                  ++
   viewHighScores  (highScores gstate)             ++
-  viewGhosts      (ghosts (level gstate))
+  viewGhosts      (ghosts (level gstate))         ++
+  viewLives       (playerLives (player gstate))
   )
 
 -- | View Pac-Man 
@@ -73,27 +74,31 @@ viewLargeFood largefood = [translate (x * 10) (y * 10) (color white (circleSolid
 -- | View Ghosts
 viewGhosts :: [Ghost] -> [Picture]
 viewGhosts [] = []
-viewGhosts (ghost:gs) = [translate (x * 10) (y * 10) (scale 0.045 0.045 (ghostBitMap ghost))] ++ viewGhosts gs 
+viewGhosts (ghost:gs) = [translate (x * 10) (y * 10) (scale 0.15 0.15 (ghostBitMap ghost))] ++ viewGhosts gs 
   where (x, y) = ghostLocation ghost
 
 -- | View Text
 viewScore :: Score -> [Picture]
-viewScore score = [translate (-250) (-240) (color white (scale 0.1 0.1 (text ("Score:" ++ (show score)))))]
+viewScore score = [translate (-275) (-265) (color white (scale 0.1 0.1 (text ("Score:" ++ (show score)))))]
 
 viewPlayState :: PlayState -> [Picture]
-viewPlayState playState = [translate (-250) 230 (color white (scale 0.1 0.1 (text playStateText)))]
+viewPlayState playState = [translate (-275) 255 (color white (scale 0.1 0.1 (text playStateText)))]
   where playStateText = case playState of 
           Start     -> "Press 'p' to start!"
           Paused    -> "Paused. Press 'p' to resume."
           GameOver  -> "Game Over! Press 'p' to go to start."
           Win       -> "Congratulations! Press 'p' to go to the next level."
+          WonEntireGame -> "Well done! You beat the entire game. Press p to play again."
           _         -> "Press 'p' to pause"
 
 viewHighScores :: [Int] -> [Picture]
 viewHighScores highScores = viewHighScoresSorted (sort highScores)
 
 viewHighScoresSorted :: [Int] -> [Picture]
-viewHighScoresSorted [s,t,u,v,w] = [translate 130 230 (color white (scale 0.1 0.1 (text "Highscores: ")))] ++
-  [showScore 230 (show w), showScore 210 (show v), 
-  showScore 190 (show u), showScore 170 (show t), showScore 150 (show s)]
-  where showScore y z = translate 210 y (color white (scale 0.1 0.1 (text z)))
+viewHighScoresSorted [s,t,u,v,w] = [translate 155 255 (color white (scale 0.1 0.1 (text "Highscores: ")))] ++
+  [showScore 255 (show w), showScore 235 (show v), 
+  showScore 215 (show u), showScore 195 (show t), showScore 175 (show s)]
+  where showScore y z = translate 235 y (color white (scale 0.1 0.1 (text z)))
+
+viewLives :: Int -> [Picture]
+viewLives n = [translate (220) (-265) (color white (scale 0.1 0.1 (text ("Lives:" ++ (show n)))))]
