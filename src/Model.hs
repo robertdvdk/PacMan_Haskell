@@ -7,14 +7,14 @@ import Data.List
 
 -- | The Gamestate Model
 data GameState = GameState {
-  playState   :: PlayState,
-  player      :: Player,
-  level       :: Level,
-  levels      :: [Level],
-  score       :: Score,
-  highScores  :: [Int],
-  levelCounter :: Int,
-  eatableGhostBitMap :: Picture
+  playState     	    :: PlayState,
+  player              :: Player,
+  level               :: Level,
+  levels              :: [Level],
+  score               :: Score,
+  highScores          :: [Int],
+  levelCounter        :: Int,
+  eatableGhostBitMap  :: Picture
 }
 
 data PlayState  = Start | Playing | Paused | GameOver | Win | Won | WonEntireGame
@@ -36,18 +36,18 @@ type NextDirection  = Direction
 
 -- | The level model
 data Level = Level {
-  levelColor  :: Color,
-  maze        :: Maze,
-  ghostCage   :: Cage,
-  ghosts      :: [Ghost],
-  food        :: Food,
-  largeFood   :: LargeFood,
-  playerSpawn :: PlayerSpawn,
-  ghostsSpawn :: [GhostSpawn],
-  cageTimer   :: Float,
+  levelColor    :: Color,
+  maze          :: Maze,
+  ghostCage     :: Cage,
+  ghosts        :: [Ghost],
+  food          :: Food,
+  largeFood     :: LargeFood,
+  playerSpawn   :: PlayerSpawn,
+  ghostsSpawn   :: [GhostSpawn],
+  cageTimer     :: Float,
   ghostsEatable :: (IsEatable, Float)
 }
-data IsEatable        = NotEatable | Eatable deriving Show
+data IsEatable    = NotEatable | Eatable deriving Show
 type Maze         = [Location]
 type Cage         = [Location]
 type Food         = [Location]

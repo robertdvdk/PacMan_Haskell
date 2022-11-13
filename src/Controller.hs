@@ -71,7 +71,8 @@ resetGhosts (s:ss) (g:gs) = g {ghostLocation = s} : resetGhosts ss gs
 setTimer :: Player -> Player
 setTimer player = player { dyingTimer = (dyingTimer player + 1) }
 
--- | Update player's direction, location, and ghosts' location
+-- | Update player's direction, location, and ghosts' location.
+-- | In further code optization the State monad could be implemented. This was niet done due to lack of time. 
 updateGameState :: GameState -> IO GameState
 updateGameState gstate = 
   do 
@@ -114,19 +115,19 @@ inputKey (EventKey (Char c) Down _ _) gstate
     | c == '3'    = initializeLevel gstate level3                                         -- Go to level 3
     | c == 'h'    = gstate { highScores = [0, 0, 0, 0, 0] }                           -- Reset HIGH SCORES
     where   [level1, level2, level3] = levels gstate
-            changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate)}
+            changeDirection direction = gstate { player = playerChangeNextDirection direction (player gstate) }
               where playerChangeNextDirection dir player = player { playerNextDirection = dir }
 inputKey _ gstate = gstate
 
 -- | Changes the state based on the current state and pressed key
 changeGameState :: GameState -> GameState 
 changeGameState gstate = case playState gstate of 
-  Start     -> gstate { playState = Playing }
-  Playing   -> gstate { playState = Paused }
-  Paused    -> gstate { playState = Playing }
-  GameOver  -> gstate { playState = Start, score = 0}
-  Win       -> gstate { playState = Won}
-  WonEntireGame -> gstate {playState = Won}
+  Start         -> gstate { playState = Playing }
+  Playing       -> gstate { playState = Paused }
+  Paused        -> gstate { playState = Playing }
+  GameOver      -> gstate { playState = Start, score = 0 }
+  Win           -> gstate { playState = Won }
+  WonEntireGame -> gstate { playState = Won }
 
 resetLevel :: GameState -> GameState
 resetLevel gstate = case levelCounter gstate of
@@ -137,13 +138,13 @@ resetLevel gstate = case levelCounter gstate of
 
 nextLevel :: GameState -> GameState
 nextLevel gstate = case levelCounter gstate of 
-  1 -> (initializeLevel gstate level2) {levelCounter = 2}
-  2 -> (initializeLevel gstate level3) {levelCounter = 3}
-  3 -> (initializeLevel gstate level1) {levelCounter = 1}
+  1 -> (initializeLevel gstate level2) { levelCounter = 2 }
+  2 -> (initializeLevel gstate level3) { levelCounter = 3 }
+  3 -> (initializeLevel gstate level1) { levelCounter = 1 }
   where [level1, level2, level3] = levels gstate
 
 initializeLevel :: GameState -> Level -> GameState
 initializeLevel gstate newlevel = gstate {player = newplayer, level = initlevel}
   where
-    newplayer = (player gstate) {playerLocation = playerSpawn newlevel, playerDirection = West, dyingTimer = 0}
-    initlevel = newlevel {ghosts = resetGhosts (ghostsSpawn newlevel) (ghosts newlevel)}
+    newplayer = (player gstate) { playerLocation = playerSpawn newlevel, playerDirection = West, dyingTimer = 0 }
+    initlevel = newlevel { ghosts = resetGhosts (ghostsSpawn newlevel) (ghosts newlevel) }
