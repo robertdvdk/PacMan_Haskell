@@ -40,16 +40,13 @@ getInt :: Int -> Int -> IO Int
 getInt x y = getStdRandom (randomR (x, y))
 
 -- | Picks a random direction for a ghost
-ghostPickNextDirection :: Level -> Ghost -> IO Direction
-ghostPickNextDirection level ghost = do let xs = [a | a <- [North, East, South, West], ghostAbleToChangeDirection level ghost a]
-                                        dir <- getInt 0 (length xs - 1)
-                                        return (xs !! dir)
-
 ghostPickWeightedNextDirection :: Level -> Ghost -> Player -> Int -> IO Direction
 ghostPickWeightedNextDirection level ghost player weightfactor = 
-    do  let xs = ghostGenerateWeightedNextDirections level ghost player weightfactor
-        dir <- getInt 0 (length xs - 1)
+    do  dir <- getInt 0 (length xs - 1)
         return (xs !! dir)
+  where xs = case ghostsEatable level of
+                    (Eatable, _)     -> ghostGenerateWeightedNextDirections level ghost player 0
+                    (NotEatable, _)  -> ghostGenerateWeightedNextDirections level ghost player weightfactor
 
 ghostGenerateWeightedNextDirections :: Level -> Ghost -> Player -> Int -> [Direction]
 ghostGenerateWeightedNextDirections level ghost player weightfactor 
@@ -72,10 +69,11 @@ ghostGenerateWeightedNextDirections level ghost player weightfactor
 
 eatFood :: GameState -> GameState
 eatFood gstate | playerLocation (player gstate) `elem` food       (level gstate) = gstate { score = (score gstate + 10), level = (removeFood      (level gstate)) }
-               | playerLocation (player gstate) `elem` largeFood  (level gstate) = gstate { score = (score gstate + 50), level = (removeLargeFood (level gstate)) }
+               | playerLocation (player gstate) `elem` largeFood  (level gstate) = gstate { score = (score gstate + 50), level = eatableghosts ((removeLargeFood (level gstate)))}
                | otherwise = gstate
   where removeFood      level = level { food       = delete (playerLocation (player gstate)) (food      level) }
         removeLargeFood level = level { largeFood  = delete (playerLocation (player gstate)) (largeFood level) }
+        eatableghosts   level = level { ghostsEatable = (Eatable, 50)}
 
 -- | Checks if Pac-Man can make a turn
 playerAbleToChangeDirection :: Maze -> Player -> Bool 

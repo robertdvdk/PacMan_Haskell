@@ -29,10 +29,15 @@ step secs gstate = case playState gstate of
 
 -- | Check if a player either collided with a ghost this frame, or will collide in the next frame. If so, it's game over.
 checkPlayerGhostCollision :: GameState -> [Ghost] -> GameState
-checkPlayerGhostCollision gstate gs = if checkPlayerGhostCollision' gstate gs then (decrementLives gstate) else gstate where
-  checkPlayerGhostCollision' gstate [] = False
-  checkPlayerGhostCollision' gstate gs = True `elem` [checkPlayerGhostCollision'' (player gstate) g | g <- gs]
-  checkPlayerGhostCollision'' player g  = 
+checkPlayerGhostCollision gstate gs = case checkPlayerGhostCollision' gstate gs of
+  Nothing -> gstate
+  Just a -> case ghostsEatable (level gstate) of
+    (Eatable, _) -> gstate {level = deleteGhost (level gstate) a} 
+    (NotEatable, _) -> decrementLives gstate 
+  where
+    checkPlayerGhostCollision' gstate [] = Nothing
+    checkPlayerGhostCollision' gstate gs = elemIndex True [checkPlayerGhostCollision'' (player gstate) g | g <- gs]
+    checkPlayerGhostCollision'' player g  = 
           (sameLocation (playerLocation player) (ghostLocation g)) || (sameLocation (playerLocation (playerChangeLocation player)) (ghostLocation g))
                 where  sameLocation (x1, y1) (x2, y2) = (x1 == x2 && y1 == y2)
 
@@ -42,6 +47,9 @@ decrementLives gstate = case playerLives (player gstate) of
   _ -> gstate {player = dec (player gstate), playState = Start}
   where
     dec player = player {playerLives = playerLives player - 1}
+
+deleteGhost :: Level -> Int -> Level
+deleteGhost lv n = let (as,b:bs) = splitAt n (ghosts lv) in lv {ghosts = as ++ bs}
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
@@ -75,10 +83,18 @@ updateGameState gstate =
     let gstate''''' = gstate'''' { level = (level gstate'''') { ghosts = movedGhosts } }
     let gstate'''''' = checkPlayerGhostCollision gstate''''' (ghosts (level gstate'''''))
     let gstate'''''''   = checkEverythingEaten gstate''''''
-    return gstate'''''''
+    let gstate''''''''   = updateEatable gstate'''''''
+    return gstate''''''''
 
 
 -- | PURE PART STARTS HERE
+updateEatable :: GameState -> GameState
+updateEatable gstate = gstate {level = decrementEatable (level gstate)} where
+  decrementEatable lv = case ghostsEatable lv of
+    (Eatable, 0) -> lv {ghostsEatable = (NotEatable, 0)}
+    (Eatable, x) -> lv {ghostsEatable = (Eatable, x-1)}
+    _              -> lv
+
 -- | Increments the number of frames for the cage; the cages flips between yellow and blue for 5 frames each
 flashCage :: Level -> Level
 flashCage level | cageTimer level == 10  = level { cageTimer = 0}

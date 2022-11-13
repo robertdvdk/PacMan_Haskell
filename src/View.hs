@@ -17,8 +17,9 @@ viewPure gstate = pictures (
   viewLevel       (level gstate)                  ++
   viewScore       (score gstate)                  ++
   viewHighScores  (highScores gstate)             ++
-  viewGhosts      (ghosts (level gstate))         ++
-  viewLives       (playerLives (player gstate))
+  viewGhosts      (ghosts (level gstate)) gstate  ++
+  viewLives       (playerLives (player gstate))   ++
+  viewEatable     (ghostsEatable (level gstate))
   )
 
 -- | View Pac-Man 
@@ -72,9 +73,11 @@ viewLargeFood :: LargeFood -> [Picture]
 viewLargeFood largefood = [translate (x * 10) (y * 10) (color white (circleSolid 4)) | (x, y) <- largefood]
 
 -- | View Ghosts
-viewGhosts :: [Ghost] -> [Picture]
-viewGhosts [] = []
-viewGhosts (ghost:gs) = [translate (x * 10) (y * 10) (scale 0.15 0.15 (ghostBitMap ghost))] ++ viewGhosts gs 
+viewGhosts :: [Ghost] -> GameState -> [Picture]
+viewGhosts [] _ = []
+viewGhosts (ghost:gs) gstate = case ghostsEatable (level gstate) of 
+  (NotEatable, _) -> [translate (x * 10) (y * 10) (scale 0.15 0.15 (ghostBitMap ghost))] ++ viewGhosts gs gstate
+  (Eatable, _) -> [translate (x * 10) (y * 10) (scale 0.15 0.15 (eatableGhostBitMap gstate))] ++ viewGhosts gs gstate
   where (x, y) = ghostLocation ghost
 
 -- | View Text
@@ -102,3 +105,6 @@ viewHighScoresSorted [s,t,u,v,w] = [translate 155 255 (color white (scale 0.1 0.
 
 viewLives :: Int -> [Picture]
 viewLives n = [translate (220) (-265) (color white (scale 0.1 0.1 (text ("Lives:" ++ (show n)))))]
+
+viewEatable :: (IsEatable, Float) -> [Picture]
+viewEatable (a, n) = [translate (0) (-265) (color white (scale 0.1 0.1 (text (show a))))]

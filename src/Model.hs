@@ -13,7 +13,8 @@ data GameState = GameState {
   levels      :: [Level],
   score       :: Score,
   highScores  :: [Int],
-  levelCounter :: Int
+  levelCounter :: Int,
+  eatableGhostBitMap :: Picture
 }
 
 data PlayState  = Start | Playing | Paused | GameOver | Win | Won | WonEntireGame
@@ -43,9 +44,10 @@ data Level = Level {
   largeFood   :: LargeFood,
   playerSpawn :: PlayerSpawn,
   ghostsSpawn :: [GhostSpawn],
-  cageTimer   :: Float
+  cageTimer   :: Float,
+  ghostsEatable :: (IsEatable, Float)
 }
-
+data IsEatable        = NotEatable | Eatable deriving Show
 type Maze         = [Location]
 type Cage         = [Location]
 type Food         = [Location]
@@ -63,9 +65,9 @@ data Ghost = Ghost {
   ghostIndex          :: Int
 }
 
+
 data GhostOutsideCage = InsideCage | OutsideCage
 data GhostColor       = Red | Pink | Yellow | Blue
-data Eatable          = IsEatable | NotEatable
 
 class Entity a where
   entityLocation  :: a -> Location

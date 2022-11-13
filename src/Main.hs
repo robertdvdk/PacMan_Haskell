@@ -22,19 +22,20 @@ main = do
     pinkGhostBM     <- loadBMP "pinkGhost.bmp"
     yellowGhostBM   <- loadBMP "yellowGhost.bmp"
     blueGhostBM     <- loadBMP "blueGhost.bmp"
+    eatableGhostBM  <- loadBMP "eatableGhost.bmp"
 
     let initialPlayer = Player [stage1, stage2, stage3, stage4, stage5] (0, 0) West West 0 3
 
     let initialGhosts1 = [Ghost redGhostBM (0, 0) West InsideCage 0 1, Ghost pinkGhostBM (0, 0) West InsideCage 1 2]
-    let initialLevel1 = Level blue  maze1 cage1 initialGhosts1 food1 largefood1 playerSpawn1 ghostsSpawn1 0
+    let initialLevel1 = Level blue  maze1 cage1 initialGhosts1 food1 largefood1 playerSpawn1 ghostsSpawn1 0 (NotEatable, 0)
 
     let initialGhosts2 = [Ghost redGhostBM (0, 0) West InsideCage 0 1, Ghost pinkGhostBM (0, 0) West InsideCage 1 2, Ghost yellowGhostBM (0, 0) West InsideCage 2 3]
-    let initialLevel2 = Level green maze2 cage2 initialGhosts2 food2 largefood2 playerSpawn2 ghostsSpawn2 0
+    let initialLevel2 = Level green maze2 cage2 initialGhosts2 food2 largefood2 playerSpawn2 ghostsSpawn2 0 (NotEatable, 0)
 
     let initialGhosts3 = [Ghost redGhostBM (0, 0) West InsideCage 0 1, Ghost pinkGhostBM (0, 0) West InsideCage 1 2, Ghost yellowGhostBM (0, 0) West InsideCage 2 3, Ghost blueGhostBM (0, 0) West InsideCage 5 4]
-    let initialLevel3 = Level red   maze3 cage3 initialGhosts3 food3 largefood3 playerSpawn3 ghostsSpawn3 0
+    let initialLevel3 = Level red   maze3 cage3 initialGhosts3 food3 largefood3 playerSpawn3 ghostsSpawn3 0 (NotEatable, 0)
 
-    let initialState = GameState Start initialPlayer initialLevel1 [initialLevel1, initialLevel2, initialLevel3] 0 highScores 1
+    let initialState = GameState Start initialPlayer initialLevel1 [initialLevel1, initialLevel2, initialLevel3] 0 highScores 1 eatableGhostBM
 
     playIO (InWindow "Pac-Man" (550, 550) (0, 0)) -- Or FullScreen
               black            -- Background color
